@@ -196,9 +196,9 @@ app.get('/', (req, res) => {
         en: 'lp-en.html'
     };
     let fileName = fileMap[userLang] || 'lp-en.html';
-    // 言語別LPが未作成の場合は lp.html にフォールバック（AIクローラー含む非日本語アクセスのエラー防止）
+    // 言語別LPが未作成の場合は lp-en.html → lp.html の順にフォールバック（AIクローラー含む非日本語アクセスのエラー防止）
     if (!fs.existsSync(path.join(__dirname, 'public', fileName))) {
-        fileName = 'lp.html';
+        fileName = fs.existsSync(path.join(__dirname, 'public', 'lp-en.html')) ? 'lp-en.html' : 'lp.html';
     }
     res.sendFile(path.join(__dirname, 'public', fileName));
 });
