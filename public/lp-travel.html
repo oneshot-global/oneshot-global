@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>oneshotcal Travel | 海外予約メールをカレンダーへ・タイムゾーン自動変換</title>
+    <meta name="description" content="海外サイトで予約したホテル・フライト・レストラン。確認メールを撮るだけで、タイムゾーンも日付フォーマットも自動で正しくGoogleカレンダーへ。Booking.com、Airbnb、Expedia、海外発信メールに対応。">
+    <meta name="keywords" content="海外予約, タイムゾーン, 時差計算, Googleカレンダー, Booking.com, Airbnb, フライト予約, 海外旅行, 日付フォーマット, oneshotcal">
+    <link rel="icon" type="image/png" href="/img/icon2.png">
+    <link rel="manifest" href="/manifest.json?v=8">
+    <link rel="apple-touch-icon" href="/img/icon2.png?v=8">
+    <link rel="stylesheet" href="css/lp-style.css?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* 1ページLP追加スタイル */
+        .section-divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+            margin: 0 auto 40px;
+            border-radius: 2px;
+        }
+        .steps-section {
+            padding: 80px 0;
+            background: #fff;
+        }
+        .steps-section h2 {
+            text-align: center;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+        .step-card {
+            background: var(--bg-main);
+            border: 1px solid var(--ai-accent);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .step-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.07);
+            border-color: var(--gold);
+        }
+        .step-num {
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: var(--gold);
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .step-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .step-card h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text-main); }
+        .step-card p { font-size: 0.88rem; color: var(--text-sub); line-height: 1.5; }
+
+        /* 安心セクション */
+        .trust-section {
+            padding: 80px 0;
+            background: var(--bg-main);
+        }
+        .trust-section h2 {
+            text-align: center;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .trust-grid-lp {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .trust-card-lp {
+            background: #fff;
+            border: 1px solid var(--ai-accent);
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+        }
+        .trust-card-lp .t-icon { font-size: 2rem; margin-bottom: 10px; }
+        .trust-card-lp h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; color: var(--text-main); }
+        .trust-card-lp p { font-size: 0.82rem; color: var(--text-sub); line-height: 1.5; margin: 0; }
+
+        /* 料金セクション */
+        .pricing-section {
+            padding: 80px 0;
+            background: #fff;
+        }
+        .pricing-section h2 {
+            text-align: center;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .price-card {
+            border: 2px solid var(--ai-accent);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: center;
+            background: var(--bg-main);
+        }
+        .price-card.featured {
+            border-color: var(--gold);
+            background: #fff;
+            box-shadow: 0 8px 30px rgba(212,175,55,0.15);
+        }
+        .price-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+        }
+        .price-label { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 8px; }
+        .price-amount { font-size: 2.2rem; font-weight: 900; color: var(--text-main); line-height: 1; }
+        .price-unit { font-size: 0.8rem; color: var(--text-sub); margin-top: 4px; }
+        .price-feature { font-size: 0.85rem; color: var(--text-sub); margin-top: 16px; line-height: 1.6; }
+
+        /* 最終CTA */
+        .final-cta {
+            padding: 80px 0;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(212,175,55,0.06) 0%, var(--bg-main) 70%);
+        }
+        .final-cta h2 {
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .final-cta p {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .steps-section, .trust-section, .pricing-section, .final-cta { padding: 60px 0; }
+            .pricing-grid { grid-template-columns: 1fr; max-width: 320px; }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <div class="container">
+            <div class="logo-wrapper">
+                <img src="img/logo.png" alt="oneshotcal logo" class="hero-logo">
+            </div>
+            <h1 id="main-copy"
+                data-ja="海外で予約したら、<br>日付も時間もズレてた。"
+                data-en="Booked overseas. Wrong date.<br>Wrong time. Again."
+                data-de="Im Ausland gebucht.<br>Falsches Datum. Falsche Uhrzeit."
+                data-fr="Réservé à l'étranger.<br>Mauvaise date. Mauvaise heure."
+                data-es="Reservaste en el extranjero.<br>Fecha mal. Hora mal."></h1>
+            <p id="sub-copy"
+                data-ja="Booking.com、Airbnb、海外ホテル、フライトの確認メール。<br>撮るかコピペだけで、現地時間も日本時間も、自動でカレンダーへ。"
+                data-en="Booking.com, Airbnb, hotels, flights — overseas confirmation emails.<br>Snap or paste. Local time + your time, auto-synced to your calendar."
+                data-de="Booking.com, Airbnb, Hotels, Flüge — internationale Bestätigungsmails.<br>Scannen oder kopieren. Ortszeit + Ihre Zeit, automatisch im Kalender."
+                data-fr="Booking.com, Airbnb, hôtels, vols — confirmations internationales.<br>Photo ou copier-coller. Heure locale + votre heure, dans votre agenda automatiquement."
+                data-es="Booking.com, Airbnb, hoteles, vuelos — confirmaciones internacionales.<br>Foto o copiar y pegar. Hora local + tu hora, automáticamente en tu calendario."></p>
+            <div class="cta-wrapper">
+                <a href="/auth/google" id="cta-button" class="btn-gold"
+                    data-ja="Googleで無料スタート"
+                    data-en="Start Free with Google"
+                    data-de="Kostenlos mit Google starten"
+                    data-fr="Démarrer gratuitement avec Google"
+                    data-es="Empezar gratis con Google"></a>
+                <p class="terms-agree"
+                    data-ja="続行すると<a href='/terms'>利用規約</a>と<a href='/privacy'>プライバシーポリシー</a>に同意したことになります"
+                    data-en="By continuing, you agree to our <a href='/terms'>Terms</a> and <a href='/privacy'>Privacy Policy</a>."
+                    data-de="Mit dem Fortfahren stimmen Sie unseren <a href='/terms'>AGB</a> und der <a href='/privacy'>Datenschutzrichtlinie</a> zu."
+                    data-fr="En continuant, vous acceptez nos <a href='/terms'>CGU</a> et notre <a href='/privacy'>Politique de confidentialité</a>."
+                    data-es="Al continuar, aceptas nuestros <a href='/terms'>Términos</a> y la <a href='/privacy'>Política de privacidad</a>."></p>
+                <p class="trust-note"
+                    data-ja="🔒 Googleのセキュリティ基準を遵守。まず3回無料でお試しいただけます。"
+                    data-en="🔒 Google security compliant. Try free 3 times first."
+                    data-de="🔒 Google-Sicherheitsstandards. 3 kostenlose Versuche."
+                    data-fr="🔒 Conforme aux normes Google. 3 essais gratuits."
+                    data-es="🔒 Cumple estándares Google. 3 intentos gratuitos."></p>
+            </div>
+        </div>
+    </section>
+
+    <section style="padding: 60px 0 40px; background: var(--bg-main);">
+        <div class="container" style="max-width: 720px;">
+            <h2 style="text-align: center; font-size: clamp(1.3rem, 2.6vw, 1.7rem); font-weight: 900; margin-bottom: 30px; color: var(--text-main);"
+                data-ja="海外予約、こんな経験ありませんか？"
+                data-en="Sound familiar?"
+                data-de="Kennen Sie das?"
+                data-fr="Ça vous parle ?"
+                data-es="¿Te suena?"></h2>
+            <div class="section-divider"></div>
+            <div style="display: flex; flex-direction: column; gap: 18px; margin-top: 30px;">
+                <div style="background: #fff; border-left: 4px solid var(--gold); border-radius: 12px; padding: 20px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+                    <p style="margin: 0; font-size: 0.98rem; line-height: 1.7; color: var(--text-main);"
+                        data-ja="「03/05/2026」が3月5日なのか5月3日なのか分からず、読み違えて予約を入れたら、現地で『予約は2ヶ月後です』と告げられた。"
+                        data-en="&quot;03/05/2026&quot; — March 5? May 3? You guessed wrong. You arrived only to be told your reservation is 2 months away."
+                        data-de="„03/05/2026“ — der 5. März oder der 3. Mai? Sie haben sich geirrt. Im Hotel hieß es: „Ihre Buchung ist erst in 2 Monaten.“"
+                        data-fr="« 03/05/2026 » — le 5 mars ou le 3 mai ? Vous vous êtes trompé. À l'hôtel, on vous annonce que la réservation est dans 2 mois."
+                        data-es="«03/05/2026» — ¿5 de marzo o 3 de mayo? Te equivocaste. Al llegar al hotel, te dijeron que tu reserva es dentro de 2 meses."></p>
+                </div>
+                <div style="background: #fff; border-left: 4px solid var(--gold); border-radius: 12px; padding: 20px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+                    <p style="margin: 0; font-size: 0.98rem; line-height: 1.7; color: var(--text-main);"
+                        data-ja="ベルリンのホテル「15時チェックイン」をカレンダーに入れたら、現地に着いて時計を合わせた瞬間に予定が深夜に。"
+                        data-en="You enter &quot;3 PM check-in&quot; for a Berlin hotel. Then you land, your phone updates — and your calendar shows it at midnight."
+                        data-de="Sie tragen „15 Uhr Check-in“ für ein Berliner Hotel ein. Sie landen, Ihr Telefon aktualisiert sich — und der Termin steht plötzlich um Mitternacht."
+                        data-fr="Vous notez « check-in 15h » pour un hôtel à Berlin. À l'atterrissage, votre téléphone se met à jour — et l'événement passe à minuit."
+                        data-es="Anotas «check-in 15:00» para un hotel en Berlín. Aterrizas, tu móvil se actualiza — y el evento aparece a medianoche."></p>
+                </div>
+                <div style="background: #fff; border-left: 4px solid var(--gold); border-radius: 12px; padding: 20px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+                    <p style="margin: 0; font-size: 0.98rem; line-height: 1.7; color: var(--text-main);"
+                        data-ja="フライトの出発と到着で時差を計算するのが面倒。電卓を叩いて、結局1時間ズレて入力。"
+                        data-en="Calculating flight departure vs arrival timezones is exhausting. You finally enter it — off by one hour."
+                        data-de="Zeitzonen für Abflug und Ankunft auszurechnen ist mühsam. Am Ende ist die Uhrzeit doch eine Stunde falsch."
+                        data-fr="Calculer les fuseaux horaires départ/arrivée, c'est épuisant. Au final, vous saisissez avec une heure d'écart."
+                        data-es="Calcular zonas horarias de salida y llegada agota. Al final, lo introduces con una hora de error."></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section style="padding: 60px 0 80px; background: #fff; text-align: center;">
+        <div class="container" style="max-width: 680px;">
+            <h2 style="font-size: clamp(1.4rem, 2.8vw, 1.9rem); font-weight: 900; margin-bottom: 14px; color: var(--text-main); line-height: 1.4;"
+                data-ja="oneshotcal なら、確認メールを撮るか、本文をコピペするだけ。"
+                data-en="With oneshotcal, just snap or paste the confirmation email."
+                data-de="Mit oneshotcal: Bestätigungsmail einfach abfotografieren oder Text reinkopieren."
+                data-fr="Avec oneshotcal, il suffit de prendre en photo ou de copier-coller l'e-mail."
+                data-es="Con oneshotcal, basta con tomar una foto o copiar y pegar el e-mail."></h2>
+            <p style="font-size: 1rem; color: var(--text-sub); line-height: 1.7; margin-top: 20px;"
+                data-ja="場所から自動でタイムゾーンを判定。言語と地域から日付フォーマットを判定。あなたは何もしなくていい。"
+                data-en="We detect the timezone from the location. We detect the date format from language and region. You do nothing."
+                data-de="Wir erkennen die Zeitzone vom Ort. Wir erkennen das Datumsformat aus Sprache und Region. Sie müssen nichts tun."
+                data-fr="Nous détectons le fuseau horaire selon le lieu. Nous détectons le format de date selon la langue et la région. Vous n'avez rien à faire."
+                data-es="Detectamos la zona horaria por el lugar. Detectamos el formato de fecha por idioma y región. Tú no haces nada."></p>
+        </div>
+    </section>
+
+    <section class="steps-section">
+        <div class="container">
+            <h2 data-ja="こんな場面で力を発揮します" data-en="Where it shines" data-de="Hier zeigt es seine Stärke" data-fr="Là où ça brille" data-es="Donde brilla"></h2>
+            <div class="section-divider"></div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <span class="step-num" data-ja="ホテル" data-en="HOTELS" data-de="HOTELS" data-fr="HÔTELS" data-es="HOTELES">HOTELS</span>
+                    <div class="step-icon">🏨</div>
+                    <h3 data-ja="海外ホテルのチェックイン/アウト" data-en="Overseas Check-in / Check-out" data-de="Hotel-Check-in / Check-out im Ausland" data-fr="Check-in / Check-out à l'étranger" data-es="Check-in / Check-out en el extranjero"></h3>
+                    <p data-ja="Booking.com、Airbnb、Expedia、Hotels.com、Marriott。確認メールやスクショ1枚で、現地時間のチェックイン・チェックアウトをまとめて登録。" data-en="Booking.com, Airbnb, Expedia, Hotels.com, Marriott. One screenshot — local check-in & check-out, both saved." data-de="Booking.com, Airbnb, Expedia, Hotels.com, Marriott. Ein Screenshot — Check-in & Check-out in Ortszeit, beides gespeichert." data-fr="Booking.com, Airbnb, Expedia, Hotels.com, Marriott. Une capture — check-in et check-out en heure locale, tout enregistré." data-es="Booking.com, Airbnb, Expedia, Hotels.com, Marriott. Una captura — check-in y check-out en hora local, todo guardado."></p>
+                </div>
+                <div class="step-card">
+                    <span class="step-num" data-ja="フライト" data-en="FLIGHTS" data-de="FLÜGE" data-fr="VOLS" data-es="VUELOS">FLIGHTS</span>
+                    <div class="step-icon">✈️</div>
+                    <h3 data-ja="国際線の出発・到着" data-en="International Departure / Arrival" data-de="Internationale Abflüge & Ankünfte" data-fr="Départs / Arrivées internationaux" data-es="Salidas / Llegadas internacionales"></h3>
+                    <p data-ja="出発は出発地の時間、到着は到着地の時間。タイムゾーンが違うフライトも、両方を別々の現地時間で正確に登録。" data-en="Departure in origin timezone, arrival in destination timezone. Each flight leg saved in its own local time, accurately." data-de="Abflug in der Abflugzeit, Ankunft in der Ankunftszeit. Jeder Flugabschnitt with korrekter Ortszeit gespeichert." data-fr="Départ à l'heure du lieu de départ, arrivée à l'heure de destination. Chaque vol enregistré dans son fuseau local, précisément." data-es="Salida en hora del origen, llegada en hora del destino. Cada vuelo guardado con su hora local correcta."></p>
+                </div>
+                <div class="step-card">
+                    <span class="step-num" data-ja="レストラン" data-en="DINING" data-de="RESTAURANTS" data-fr="RESTAURANTS" data-es="RESTAURANTES">DINING</span>
+                    <div class="step-icon">🍽️</div>
+                    <h3 data-ja="海外レストラン・現地ツアー予約" data-en="Restaurants & Local Tours" data-de="Restaurants & lokale Touren" data-fr="Restaurants & visites locales" data-es="Restaurantes y tours locales"></h3>
+                    <p data-ja="OpenTable、Resy、現地ツアー予約。住所と国名から自動で正しいタイムゾーンに変換。出発前に日本のカレンダーに入れておけば現地で迷わない。" data-en="OpenTable, Resy, local tour bookings. Auto-converted from address & country. Add it before you leave — no guesswork at the destination." data-de="OpenTable, Resy, lokale Touren. Aus Adresse & Land automatisch konvertiert. Vor der Reise eintragen — vor Ort kein Rätselraten." data-fr="OpenTable, Resy, visites locales. Conversion automatique selon l'adresse et le pays. Enregistré avant le départ — aucune confusion on place." data-es="OpenTable, Resy, tours locales. Conversión automática según la dirección y el país. Guárdalo antes de partir — cero confusión al llegar."></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust-section">
+        <div class="container">
+            <h2 data-ja="安心して使える理由" data-en="Why You Can Trust Us" data-de="Warum Sie uns vertrauen können" data-fr="Pourquoi nous faire confiance" data-es="Por qué puedes confiar en nosotros"></h2>
+            <div class="section-divider"></div>
+            <div class="trust-grid-lp">
+                <div class="trust-card-lp">
+                    <div class="t-icon">🔒</div>
+                    <h4 data-ja="Google公式審査済み" data-en="Google Verified" data-de="Google-geprüft" data-fr="Vérifié par Google" data-es="Verificado por Google"></h4>
+                    <p data-ja="Googleの厳格なセキュリティ審査をクリアした安全なサービスです。" data-en="Passed Google's strict security review." data-de="Hat Googles strenge Sicherheitsprüfung bestanden." data-fr="A passé l'examen de sécurité strict de Google." data-es="Ha superado la estricta revisión de seguridad de Google."></p>
+                </div>
+                <div class="trust-card-lp">
+                    <div class="t-icon">🗑️</div>
+                    <h4 data-ja="画像は即削除" data-en="Images Deleted Instantly" data-de="Bilder sofort gelöscht" data-fr="Images supprimées aussitôt" data-es="Imágenes eliminadas al instante"></h4>
+                    <p data-ja="アップロードされた画像は解析完了後、サーバーから即時削除されます。" data-en="Uploaded images are deleted from servers immediately after analysis." data-de="Hochgeladene Bilder werden sofort nach der Analyse gelöscht." data-fr="Les images sont supprimées immédiatement après l'analyse." data-es="Las imágenes se eliminan inmediatamente después del análisis."></p>
+                </div>
+                <div class="trust-card-lp">
+                    <div class="t-icon">🚫</div>
+                    <h4 data-ja="AIの学習に不使用" data-en="Not Used for AI Training" data-de="Nicht für KI-Training verwendet" data-fr="Non utilisé pour l'entraînement IA" data-es="No se usa para entrenamiento de IA"></h4>
+                    <p data-ja="取得したGoogleユーザーデータをAI/MLモデルの学習に利用しません。" data-en="Google user data is never used for AI/ML model training." data-de="Google-Nutzerdaten werden nie für KI/ML-Training verwendet." data-fr="Les données Google ne sont jamais utilisées pour l'entraînement IA." data-es="Los datos de Google nunca se usan para entrenar modelos de IA."></p>
+                </div>
+                <div class="trust-card-lp">
+                    <div class="t-icon">🤝</div>
+                    <h4 data-ja="第三者提供なし" data-en="No Third-party Sharing" data-de="Keine Weitergabe an Dritte" data-fr="Pas de partage avec des tiers" data-es="Sin compartir con terceros"></h4>
+                    <p data-ja="ユーザーの同意なく、データを第三者に販売・提供しません。" data-en="Data is never sold or shared without your consent." data-de="Daten werden ohne Ihre Zustimmung nicht verkauft oder weitergegeben." data-fr="Les données ne sont jamais vendues sans votre consentement." data-es="Los datos nunca se venden sin tu consentimiento."></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing-section">
+        <div class="container">
+            <h2 data-ja="シンプルな料金体系" data-en="Simple Pricing" data-de="Einfache Preisgestaltung" data-fr="Tarification simple" data-es="Precios simples"></h2>
+            <div class="section-divider"></div>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <div class="price-label" data-ja="まずは無料で" data-en="Start Free" data-de="Kostenlos starten" data-fr="Commencer gratuitement" data-es="Empieza gratis"></div>
+                    <div class="price-amount">$0</div>
+                    <div class="price-unit" data-ja="3回まで" data-en="Up to 3 times" data-de="Bis zu 3 Mal" data-fr="Jusqu'à 3 fois" data-es="Hasta 3 veces"></div>
+                    <div class="price-feature" data-ja="登録不要で今すぐ試せる" data-en="Try right now, no commitment" data-de="Jetzt ausprobieren, keine Verpflichtung" data-fr="Essayez maintenant sans engagement" data-es="Prueba ahora sin compromiso"></div>
+                </div>
+                <div class="price-card featured">
+                    <div class="price-badge" data-ja="プレミアム" data-en="PREMIUM" data-de="PREMIUM" data-fr="PREMIUM" data-es="PREMIUM">PREMIUM</div>
+                    <div class="price-label" data-ja="もっと使いたい方へ" data-en="For power users" data-de="Für Power-User" data-fr="Pour les utilisateurs intensifs" data-es="Para usuarios intensivos"></div>
+                    <div class="price-amount">$1</div>
+                    <div class="price-unit" data-ja="/ 月（自動更新）" data-en="/ month (auto-renew)" data-de="/ Monat (automatische Verlängerung)" data-fr="/ mois (renouvellement auto)" data-es="/ mes (renovación automática)"></div>
+                    <div class="price-feature" data-ja="月30回まで<br>解析失敗は回数消費なし" data-en="30 times / month<br>Failed analysis doesn't count" data-de="30 Mal / Monat<br>Fehlgeschlagene Analysen zählen nicht" data-fr="30 fois / mois<br>Les échecs ne comptent pas" data-es="30 veces / mes<br>Los fallos no cuentan"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="final-cta">
+        <div class="container">
+            <h2 data-ja="次の海外予約から、楽になる。"
+                data-en="Make your next trip easier."
+                data-de="Machen Sie Ihre nächste Reise einfacher."
+                data-fr="Simplifiez votre prochain voyage."
+                data-es="Haz tu próximo viaje más fácil."></h2>
+            <p data-ja="まずは3回、無料でお試しください。クレジットカード不要。"
+                data-en="Try it free — 3 times, no credit card."
+                data-de="Kostenlos ausprobieren — 3 Mal, ohne Kreditkarte."
+                data-fr="Essayez gratuitement — 3 fois, sans carte bancaire."
+                data-es="Pruébalo gratis — 3 veces, sin tarjeta."></p>
+            <a href="/auth/google" class="btn-gold"
+                data-ja="Googleではじめる"
+                data-en="Start with Google"
+                data-de="Mit Google starten"
+                data-fr="Commencer avec Google"
+                data-es="Empezar con Google"></a>
+        </div>
+    </section>
+
+    <div id="legal-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <iframe id="modal-iframe" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 oneshotcal. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="https://oneshotcal.com/privacy">Privacy Policy</a>
+                <a href="https://oneshotcal.com/terms">Terms of Service</a>
+                <a href="javascript:void(0)" id="footer-tokusho-link" onclick="openSctaModal()" data-ja="特定商取引法に基づく表記" data-en="Legal Notice" data-de="Impressum" data-fr="Mentions légales" data-es="Aviso legal">特定商取引法に基づく表記</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ログイン済みチェック → /app にリダイレクト
+        (function() {
+            const subId = localStorage.getItem('oneshot_subId');
+            const hasCookie = document.cookie.includes('session');
+            if (subId || hasCookie) {
+                window.location.href = '/app';
+            }
+        })();
+
+        function openModal(type) {
+            const modal = document.getElementById('legal-modal');
+            const iframe = document.getElementById('modal-iframe');
+            iframe.src = '/' + type;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openSctaModal() {
+            const modal = document.getElementById('legal-modal');
+            const iframe = document.getElementById('modal-iframe');
+            const isEn = (localStorage.getItem('preferredLanguage') || navigator.language.slice(0, 2)) !== 'ja';
+            iframe.src = isEn ? '/tokusho-en.html' : '/tokusho.html';
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('legal-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('legal-modal');
+            if (event.target == modal) closeModal();
+        }
+    </script>
+    <script src="js/lp-app.js?v=2"></script>
+</body>
+</html>

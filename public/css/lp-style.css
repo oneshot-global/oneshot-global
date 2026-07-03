@@ -1,0 +1,359 @@
+/* 最高のデザイナーによるLP専用スタイリング */
+:root {
+    --gold: #d4af37;
+    --gold-bright: #f9d976;
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: #0f172a;
+    --text-sub: #64748b;
+    --ai-accent: #e2e8f0;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ヒーローセクション */
+.hero {
+    padding: 120px 0 80px;
+    text-align: center;
+    background: radial-gradient(circle at center, #ffffff 0%, var(--bg-main) 70%);
+}
+
+.hero-logo {
+    width: 90%;
+    max-width: 500px;
+    height: auto;
+    margin-bottom: 40px;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.05));
+    animation: fadeInDown 1.2s ease-out;
+}
+
+h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+    animation: fadeInUp 1s ease-out 0.3s both;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+}
+
+#sub-copy {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--text-sub);
+    margin-bottom: 40px;
+    animation: fadeInUp 1s ease-out 0.5s both;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+}
+
+/* ゴールドボタン & 信頼バッジ */
+.cta-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.btn-gold {
+    display: inline-block;
+    padding: 18px 45px;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 100%);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+    animation: fadeInUp 1s ease-out 0.7s both;
+}
+
+.btn-gold:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(212, 175, 55, 0.5);
+}
+
+.trust-note {
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    max-width: 500px;
+    animation: fadeInUp 1s ease-out 0.9s both;
+    padding: 0 10px;
+    line-height: 1.4;
+    word-break: normal;
+}
+
+/* 特徴カード */
+.features {
+    padding: 100px 0;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.feature-card {
+    background: var(--bg-card);
+    padding: 40px;
+    border-radius: 24px;
+    border: 1px solid var(--ai-accent);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    border-color: var(--gold);
+}
+
+.icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: var(--text-main);
+}
+
+.feature-card p {
+    color: var(--text-sub);
+    font-size: 0.95rem;
+}
+
+/* FAQセクション */
+.faq {
+    padding: 100px 0;
+    background: var(--ai-accent);
+}
+
+.faq h2 {
+    text-align: center;
+    margin-bottom: 50px;
+    font-size: 2rem;
+    color: var(--text-main);
+}
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 40px;
+}
+
+.faq-item h4 {
+    color: var(--gold);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.faq-item p {
+    color: var(--text-sub);
+    font-size: 0.95rem;
+}
+
+/* ガイドページ専用スタイル */
+.guide-page {
+    text-align: center;
+}
+
+.guide-hero {
+    padding: 80px 0 40px;
+}
+
+.guide-logo {
+    max-width: 300px;
+    margin-bottom: 30px;
+}
+
+.guide-subtext {
+    color: var(--text-sub);
+    max-width: 800px;
+    margin: 0 auto;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+}
+
+.guide-content {
+    padding-bottom: 80px;
+}
+
+.trust-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 40px;
+}
+
+.trust-card {
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 20px;
+    border: 1px solid var(--ai-accent);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.trust-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.next-step-box {
+    margin-top: 60px;
+    padding: 40px;
+    background: linear-gradient(180deg, rgba(212, 175, 55, 0.05) 0%, transparent 100%);
+    border-radius: 30px;
+    border: 1px dashed var(--gold);
+}
+
+.free-trial-note {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 10px;
+}
+
+.terms-agree {
+    font-size: 0.9rem;
+    color: var(--text-main) !important;
+    margin-bottom: 15px;
+    margin-top: 0;
+}
+
+.terms-agree a {
+    color: var(--gold) !important;
+    text-decoration: underline;
+    font-weight: 700;
+}
+
+/* モーダル表示用スタイル */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 0;
+    width: 90%;
+    max-width: 800px;
+    height: 80vh;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.modal-content iframe {
+    width: 100%;
+    height: 100%;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: var(--text-main) !important;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1020;
+    line-height: 1;
+    background: rgba(255,255,255,0.95) !important;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.close-modal:hover {
+    color: var(--gold);
+    background: #fff !important;
+}
+
+.back-link {
+    margin-top: 40px;
+}
+
+.back-link a {
+    color: var(--text-sub);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+/* フッター */
+footer {
+    padding: 60px 0;
+    border-top: 1px solid var(--ai-accent);
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 0.9rem;
+}
+
+.footer-links {
+    margin-top: 20px;
+}
+
+.footer-links a {
+    color: var(--text-sub);
+    text-decoration: none;
+    margin: 0 15px;
+}
+
+/* アニメーション */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .hero { padding-top: 60px; padding-bottom: 60px; }
+    .hero-logo { margin-bottom: 20px; }
+    .faq-grid { grid-template-columns: 1fr; }
+    .btn-gold { width: 85%; padding: 16px 20px; font-size: 1rem; }
+    .trust-note { font-size: 0.75rem; margin-top: 10px; }
+    #sub-copy br { display: block; }
+    .trust-grid { grid-template-columns: 1fr; }
+    .next-step-box { padding: 20px; }
+    .guide-subtext { word-break: normal; }
+    .modal-content { margin: 10% auto; height: 75vh; width: 95%; }
+}
+
+@media (min-width: 769px) {
+    #sub-copy br { display: none; }
+}

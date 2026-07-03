@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>oneshotcal v4.04</title>
+
+    <link rel="icon" href="/img/icon2.png" type="image/png">
+    <link rel="shortcut icon" href="/img/icon2.png" type="image/png">
+    <link rel="manifest" href="/manifest.json?v=20260211">
+    <link rel="apple-touch-icon" href="/img/icon2.png?v=20260211">
+    
+    <link rel="stylesheet" href="css/style.css?v=20260211">    
+    <style>
+        /* 追加レイアウト: 登録内容確認カード */
+        #registrationResult {
+            display: none;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            animation: fadeIn 0.3s ease;
+        }
+        .result-item {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #1e293b;
+        }
+        .result-label {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: bold;
+            display: block;
+        }
+        .result-value {
+            display: block;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 長押し操作の安定化のため、ボタン上での選択とメニューを抑制 */
+        .color-dot, .pc-zone {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: none;
+        }
+
+        /* ダブルタップヒント: JSで制御 */
+        #doubletap-hint {
+            display: none;
+            font-size: 10px;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 6px;
+            letter-spacing: 0.02em;
+        }
+    </style>
+</head>
+<body id="dropZone">
+
+<div id="maintenance-overlay">
+    <div class="m-card">
+        <h2>ただいまサーバー調整中</h2>
+        <p>恐れ入りますが、しばらく経ってから再度アクセスしてください。</p>
+    </div>
+</div>
+
+<div id="mainCard" class="card">
+    <div class="scanning-overlay"></div>
+    <div id="t-premiumBadge" class="premium-badge">👑 PREMIUM PLAN</div>
+    
+<div class="header-branding" style="text-align: center; margin: 0 0 5px;">
+    <img src="img/logo.png" alt="oneshotcal logo" style="width: 100%; max-width: 400px; height: auto; display: block; margin: 0 auto;">
+    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px; letter-spacing: 0.05em; opacity: 0.8;">v4.0.4</div>
+</div>
+    <p id="t-subTitle" style="margin-bottom: 5px;"></p>
+    
+    <div id="loginArea" class="hidden">
+        <a href="/auth/google"><button id="loginBtn" style="background:#fff; border-color:#e2e8f0;"></button></a>
+        <div id="divider"></div>
+    </div>
+
+    <div id="gateArea">
+        <div class="pc-guide" id="pcGuide">
+            <div class="pc-zones">
+                <div class="pc-zone" style="background: #616161;" data-id="8" oncontextmenu="return false;"></div>
+                <div class="pc-zone" style="background: #d50000;" data-id="11" oncontextmenu="return false;"></div>
+                <div class="pc-zone" style="background: #3f51b5;" data-id="1" oncontextmenu="return false;"></div>
+                <div class="pc-zone" style="background: #0b8043;" data-id="10" oncontextmenu="return false;"></div>
+                <div class="pc-zone" style="background: #f6bf26;" data-id="5" oncontextmenu="return false;"></div>
+                <div class="pc-zone" style="background: #8e24aa;" data-id="3" oncontextmenu="return false;"></div>
+            </div>
+            <div class="pc-content">
+                <p>DROP ON COLOR ZONE</p>
+                <small>OR HOVER & CTRL+V</small>
+            </div>
+        </div>
+
+        <div class="color-picker">
+            <div class="color-dot active" style="background: #616161;" data-id="8" oncontextmenu="return false;"><span></span></div>
+            <div class="color-dot" style="background: #d50000;" data-id="11" oncontextmenu="return false;"><span></span></div>
+            <div class="color-dot" style="background: #3f51b5;" data-id="1" oncontextmenu="return false;"><span></span></div>
+            <div class="color-dot" style="background: #0b8043;" data-id="10" oncontextmenu="return false;"><span></span></div>
+            <div class="color-dot" style="background: #f6bf26;" data-id="5" oncontextmenu="return false;"><span></span></div>
+            <div class="color-dot" style="background: #8e24aa;" data-id="3" oncontextmenu="return false;"><span></span></div>
+        </div>
+        <p id="doubletap-hint"></p>
+
+        <div class="dual-gate">
+            <button id="cameraBtn"></button>
+            <button id="libraryBtn"></button>
+        </div>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" onclick="this.value=null;" style="display:none">
+        <input type="file" id="libraryInput" accept="image/jpeg,image/png" onclick="this.value=null;" style="display:none">
+        <p style="text-align:center; margin-top:12px;"><a href="#" id="gridModeLink" style="font-size:12px; color:#64748b; text-decoration:underline;"></a></p>
+    </div>
+        <div id="gridArea" class="hidden" style="display:none;">
+        <button id="gridFileBtn" class="grid-primary-btn"></button>
+        <input type="file" id="gridFileInput" accept="image/*,application/pdf" onclick="this.value=null;" style="display:none">
+        <p id="gridHint" class="grid-hint"></p>
+
+        <div id="gridClassStep" style="display:none;">
+            <p id="gridClassTitle" class="grid-section-title"></p>
+            <div id="gridClassList" class="grid-class-list"></div>
+            <p style="text-align:center; margin:4px 0;"><a href="#" id="gridChangeClassLink" style="display:none; font-size:12px; color:#64748b; text-decoration:underline;"></a></p>
+            <button id="gridExtractBtn" class="grid-primary-btn"></button>
+        </div>
+
+        <div id="gridReviewStep" style="display:none;">
+            <p id="gridReviewTitle" class="grid-section-title"></p>
+            <div id="gridNotices"></div>
+            <p id="gridUnverifiedHint" class="grid-hint" style="display:none; text-align:left;"></p>
+            <div id="gridEventList" class="grid-event-list"></div>
+            <button id="gridRegisterBtn" class="grid-primary-btn"></button>
+        </div>
+
+        <p style="text-align:center; margin-top:12px;"><a href="#" id="gridBackLink" style="font-size:12px; color:#64748b; text-decoration:underline;"></a></p>
+    </div>
+
+    <div id="loader" class="loader"></div>
+    <div id="status"></div>
+
+    <div id="registrationResult">
+        <div class="result-item">
+            <span class="result-label" id="t-labelTitle">EVENT</span>
+            <span class="result-value" id="res-title">-</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label" id="t-labelDate">DATE & TIME</span>
+            <span class="result-value" id="res-datetime">-</span>
+        </div>
+        <div class="result-item" id="res-location-box">
+            <span class="result-label" id="t-labelLocation">LOCATION</span>
+            <span class="result-value" id="res-location">-</span>
+        </div>
+    </div>
+
+    <img id="preview" style="display:none">
+    <button id="uploadBtn" style="display:none;"></button>
+    <button id="checkBtn" style="display:none; margin-top: 10px; background: #0f172a; color: #fff; border:none; width: 100%; padding: 15px; font-weight: bold; border-radius: 8px;"></button>
+
+    <div style="margin-top: 20px; font-size: 10px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 5px;">
+        <div class="footer-links">
+            <a href="#" id="guideLink">Guide</a>
+            <a href="#" id="privacyLink">Privacy Policy</a>
+            <a href="#" id="termsLink">Terms of Service</a>
+            <a href="/tokusho" target="_blank" id="tokushoLink" style="text-align: center; line-height: 1.2;"></a>
+        </div>
+        <div style="margin-top: 2px; opacity: 0.7;">© 2026 Produced by Y.Kawakami</div>
+    </div>
+</div>
+
+<div id="subModal" class="modal-overlay hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="modal-card" style="background: #fff; padding: 25px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+        <div class="modal-header">
+            <h3 id="t-modalSubTitle" style="margin-top: 0;">Upgrade to Premium Plan</h3>
+        </div>
+        <div class="modal-body" style="margin: 15px 0; text-align: left; font-size: 13px;">
+            <div id="t-modalBody">
+                <div id="termsScrollArea" style="height:150px; overflow-y:auto; background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:6px; font-size:12px; margin-bottom:10px;">
+                </div>
+            </div>
+            <p id="t-modalAgreement" style="font-size: 11px; color: #94a3b8; text-align: center;">
+            </p>
+        </div>
+        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: center;">
+            <button id="modalCloseBtn" class="btn-cancel" style="padding: 10px 20px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; flex: 1;"></button>
+            <button id="modalSubBtn" class="btn-confirm" style="padding: 10px 20px; border-radius: 6px; border: none; background: #0f172a; color: #fff; cursor: pointer; flex: 1;"></button>
+        </div>
+    </div>
+</div>
+
+<div id="guideModal" class="modal-overlay hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10001; justify-content: center; align-items: center;">
+    <div class="modal-card" style="background: #fff; padding: 25px; border-radius: 12px; max-width: 450px; width: 90%; text-align: left; box-shadow: 0 4px 20px rgba(0,0,0,0.2); overflow-y: auto; max-height: 90vh;">
+        <h3 id="t-guideTitle" style="margin-top: 0; text-align: center;">OneShotCal User Guide</h3>
+        <div id="guideContent" style="font-size: 13px; color: #334155; line-height: 1.6;">
+            <p style="font-weight: bold; border-left: 4px solid #007aff; padding-left: 10px; margin: 15px 0 10px;">■ 使い方</p>
+            <ul style="padding-left: 20px; margin-bottom: 15px;">
+                <li><strong>1枚につき1予定:</strong> 画像から1つの予定を抽出しカレンダーへ登録します。</li>
+                <li><strong>操作:</strong> 色を選んで実行. PCはドラッグ＆ドロップやCtrl+Vにも対応。</li>
+            </ul>
+            <p style="font-weight: bold; border-left: 4px solid #f6bf26; padding-left: 10px; margin: 15px 0 10px;">■ 注意事項</p>
+            <ul style="padding-left: 20px; margin-bottom: 15px;">
+                <li><strong>内容確認:</strong> AIの誤解析によるミスは責任を負いかねます。必ず内容をご確認してください。</li>
+                <li><strong>広域画像不可:</strong> 月間・週間予定表など、予定が密集した画像は正しく解析できません。</li>
+                <li><strong>エラー対応:</strong> 解析失敗時は利用回数は消費されませんが、連続エラーが多い場合はアカウントを停止（BAN）することがあります。</li>
+            </ul>
+            <p style="font-weight: bold; border-left: 4px solid #10b981; padding-left: 10px; margin: 15px 0 10px;">■ プライバシー・安全管理</p>
+            <ul style="padding-left: 20px; margin-bottom: 15px;">
+                <li><strong>データの不利用:</strong> 取得したGoogleユーザーデータをAI/MLモデルのトレーニングや改善のために利用することはありません。</li>
+                <li><strong>安全な通信:</strong> 業界標準の暗号化技術（SSL/TLS）を用い、厳格なアクセス制御を維持しています。</li>
+                <li><strong>第三者提供の禁止:</strong> ユーザーの明示的な同意なく、Googleユーザーデータを第三者に販売・提供することはありません。</li>
+            </ul>
+            <p style="font-weight: bold; border-left: 4px solid #10b981; padding-left: 10px; margin: 15px 0 10px;">■ 未来への成長</p>
+            <p style="margin-bottom: 15px; padding-left: 10px;">手書き文字の解析は現在学習中です。Gemini AIの進化とともに、より正確に読み取れるよう成長していきます。現時点では活字（プリントや画面）を推奨します。</p>
+            <p style="font-weight: bold; border-left: 4px solid #ef4444; padding-left: 10px; margin: 15px 0 10px;">■ 禁止事項</p>
+            <p style="margin-bottom: 15px; padding-left: 10px;">悪用や不正な連続スキャンが検知された場合、アカウントを停止（BAN）することがあります。</p>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="guideCloseBtn" style="padding: 10px 30px; border-radius: 6px; border: none; background: #0f172a; color: #fff; cursor: pointer; width: auto;">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal(type) {
+        if (type === 'tokusho') {
+            window.open('/tokusho', '_blank');
+            return;
+        }
+        const modal = document.getElementById('legal-modal');
+        const iframe = document.getElementById('modal-iframe');
+        if (iframe) {
+            iframe.src = '/' + type;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        } else {
+            window.location.href = '/' + type;
+        }
+    }
+
+    // ダブルタップヒントを言語に合わせてモバイルのみ表示
+    (function() {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (!isMobile) return;
+        const ua = navigator.language.slice(0, 2);
+        const hints = {
+            ja: '💡 テキストをコピーして色をダブルタップで即解析',
+            en: '💡 Copy text & double-tap a color to analyze instantly',
+            de: '💡 Text kopieren & Farbe doppeltippen für sofortige Analyse',
+            fr: '💡 Copiez du texte & double-tapez une couleur pour analyser',
+            es: '💡 Copia texto & doble toque en color para analizar'
+        };
+        const hint = hints[ua] || hints['en'];
+        const el = document.getElementById('doubletap-hint');
+        if (el) {
+            el.innerText = hint;
+            el.style.display = 'block';
+        }
+    })();
+</script>
+<script src="js/app.js?v=20260416_v5"></script>
+</body>
+</html>

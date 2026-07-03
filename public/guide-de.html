@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Guide | oneshotcal</title>
+    <link rel="icon" type="image/png" href="img/icon2.png">
+    <link rel="stylesheet" href="css/lp-style.css?v=4">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="guide-page">
+
+    <section class="guide-hero">
+        <div class="container">
+            <div class="logo-wrapper">
+                <img src="img/logo.png" alt="oneshotcal logo" class="guide-logo">
+            </div>
+            <h1 data-ja="安心・安全にご利用いただくために" data-en="Your Privacy & Security First" data-de="Ihre Privatsphäre & Sicherheit an erster Stelle"></h1>
+            <p class="guide-subtext" data-ja="OneShotは、Googleのセキュリティ基準を遵守した安全な連携サービスです。" data-en="OneShot is a secure service that complies with Google's security standards." data-de="OneShot ist ein sicherer Dienst, der die Sicherheitsstandards von Google erfüllt."></p>
+        </div>
+    </section>
+
+    <section class="guide-content">
+        <div class="container">
+            <div class="trust-grid">
+                <div class="trust-card">
+                    <div class="trust-icon">🔒</div>
+                    <h3 data-ja="最小限のアクセス権限" data-en="Limited Access" data-de="Begrenzter Zugriff"></h3>
+                    <p data-ja="使用するのは「カレンダーへの予定追加」のみ。個人情報への不正アクセスは一切行えません。" data-en="We only use 'Add to Calendar' permission. Unauthorized access to personal information is strictly impossible." data-de="Wir nutzen nur die Berechtigung „Termine zum Kalender hinzufügen“. Ein unbefugter Zugriff auf persönliche Daten ist ausgeschlossen."></p>
+                </div>
+                <div class="trust-card">
+                    <div class="trust-icon">🗑️</div>
+                    <h3 data-ja="データの即時消去" data-en="Instant Deletion" data-de="Sofortige Löschung"></h3>
+                    <p data-ja="解析した画像はカレンダー登録直後に自動削除されます。サーバーに残りません。" data-en="Uploaded images are automatically deleted immediately after sync. No data is stored." data-de="Hochgeladene Bilder werden sofort nach der Synchronisierung automatisch gelöscht. Es werden keine Daten gespeichert."></p>
+                </div>
+                <div class="trust-card">
+                    <div class="trust-icon">🛡️</div>
+                    <h3 data-ja="Googleポリシーを遵守" data-en="Complies with Google Policies" data-de="Einhaltung der Google-Richtlinien"></h3>
+                    <p data-ja="Googleの「限定的利用ポリシー」を遵守し、データを第三者へ提供することもありません。" data-en="Complies with Google's Limited Use Policy. We never sell your data to third parties." data-de="Entspricht der Google-Richtlinie für eingeschränkte Nutzung. Wir geben Ihre Daten niemals an Dritte weiter."></p>
+                </div>
+            </div>
+
+            <div class="next-step-box">
+                <h4 data-ja="次のステップ" data-en="Next Step" data-de="Nächster Schritt"></h4>
+                <p data-ja="ボタンを押すとGoogleの承認画面が表示されます。「許可」を押して進んでください。" data-en="Click the button below to see Google's confirmation screen. Please click 'Allow' to proceed." data-de="Klicken Sie auf die Schaltfläche unten, um den Bestätigungsbildschirm von Google anzuzeigen. Bitte klicken Sie auf „Zulassen“, um fortzufahren."></p>
+                
+                <div class="cta-wrapper">
+                    <p class="free-trial-note" data-ja="✨ まずは3回無料でお試しいただけます" data-en="✨ Try it for free up to 3 times" data-de="✨ Bis zu 3 Mal kostenlos testen"></p>
+                    <p class="terms-agree" data-ja="<a href='javascript:void(0)' onclick='openModal(&quot;terms&quot;)'>利用規約</a>と<a href='javascript:void(0)' onclick='openModal(&quot;privacy&quot;)'>プライバシーポリシー</a>をご確認の上、" data-en="By clicking, you agree to our <a href='javascript:void(0)' onclick='openModal(&quot;terms&quot;)'>Terms</a> and <a href='javascript:void(0)' onclick='openModal(&quot;privacy&quot;)'>Privacy Policy</a>." data-de="Durch Klicken stimmen Sie unseren <a href='javascript:void(0)' onclick='openModal(&quot;terms&quot;)'>AGB</a> und <a href='javascript:void(0)' onclick='openModal(&quot;privacy&quot;)'>Datenschutzbestimmungen</a> zu."></p>
+                    <a href="/auth/google" class="btn-gold" data-ja="Googleでログインして開始" data-en="Login with Google to Start" data-de="Mit Google anmelden"></a>
+                </div>
+            </div>
+
+            <div class="back-link">
+                <a href="/how-to" data-ja="← 戻る" data-en="← Back" data-de="← Zurück"></a>
+            </div>
+        </div>
+    </section>
+
+    <div id="legal-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <iframe id="modal-iframe" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 oneshotcal. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function openModal(type) {
+            const modal = document.getElementById('legal-modal');
+            const iframe = document.getElementById('modal-iframe');
+            iframe.src = '/' + type;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal() {
+            const modal = document.getElementById('legal-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        window.onclick = function(event) {
+            const modal = document.getElementById('legal-modal');
+            if (event.target == modal) closeModal();
+        }
+    </script>
+    <script src="js/lp-app.js?v=2"></script>
+</body>
+</html>

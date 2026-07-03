@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneShotCal | 写真やメールの予定をGoogleカレンダーへ直接登録（時差も正確）</title>
+    <meta name="description" content="OneShotCalは、チラシの写真や予約確認メールのテキストから予定を読み取り、いま使っているGoogleカレンダーに直接登録するWebサービスです。場所からタイムゾーンを特定し、Googleカレンダーのタイムゾーンデータベースで変換するため、海外の予定も時差込みで正確に登録できます。">
+    <meta name="keywords" content="OneShotCal, Googleカレンダー 自動登録, 予定 写真 登録, 園 プリント カレンダー, ホテル予約メール カレンダー, タイムゾーン 変換, calendar sync, AI calendar, Google Calendar, image to calendar, OCR">
+    <link rel="canonical" href="https://oneshotcal.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="OneShotCal">
+    <meta property="og:title" content="OneShotCal | 写真やメールの予定をGoogleカレンダーへ直接登録">
+    <meta property="og:description" content="新しいアプリは要りません。写真、またはテキストのコピペだけで、いま使っているGoogleカレンダーに予定を直接登録。時差込みで正確です。">
+    <meta property="og:url" content="https://oneshotcal.com/">
+    <meta property="og:image" content="https://oneshotcal.com/img/logo.png">
+    <link rel="icon" type="image/png" href="/img/icon2.png">
+    <link rel="manifest" href="/manifest.json?v=8">
+    <link rel="apple-touch-icon" href="/img/icon2.png?v=8">
+    <link rel="stylesheet" href="css/lp-style.css?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <!-- 構造化データ（GEO対策）: Organization / WebApplication / FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://oneshotcal.com/#organization",
+          "name": "OneShotCal",
+          "url": "https://oneshotcal.com/",
+          "logo": "https://oneshotcal.com/img/logo.png"
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://oneshotcal.com/#webapp",
+          "name": "OneShotCal",
+          "url": "https://oneshotcal.com/",
+          "applicationCategory": "ProductivityApplication",
+          "operatingSystem": "Web",
+          "description": "OneShotCalは、チラシや予定表の写真、予約確認メールのテキストから予定を読み取り、いま使っているGoogleカレンダーに直接登録するWebサービスです。テキストから場所（都市・国・空港コード・住所）を特定してタイムゾーンを自動判定し、Googleカレンダーが持つ標準のタイムゾーンデータベースで変換するため、海外の予定も時差込みで正確に登録できます。日本語・英語・ドイツ語・フランス語・スペイン語に対応しています。",
+          "inLanguage": ["ja", "en", "de", "fr", "es"],
+          "featureList": [
+            "写真・スクリーンショット・テキストの貼り付けから予定を自動読み取り",
+            "Googleカレンダーへの直接登録（別アプリとの同期設定が不要）",
+            "場所の特定によるタイムゾーン自動判定（変換はGoogleカレンダーのタイムゾーンデータベースに委ねる設計）",
+            "日本語・英語・ドイツ語・フランス語・スペイン語の5言語対応",
+            "解析完了後の画像即時削除"
+          ],
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "無料プラン",
+              "price": "0",
+              "priceCurrency": "USD",
+              "description": "月3回まで無料で利用できます。"
+            },
+            {
+              "@type": "Offer",
+              "name": "プレミアムプラン",
+              "price": "1",
+              "priceCurrency": "USD",
+              "description": "月額1ドルで月30回まで利用できます。解析に失敗した場合は回数を消費しません。"
+            }
+          ],
+          "publisher": { "@id": "https://oneshotcal.com/#organization" }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://oneshotcal.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "TimeTreeと何が違いますか？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "TimeTreeは専用アプリの中に予定を保存する共有カレンダーアプリで、Googleカレンダーと併用するには別途連携設定が必要です。OneShotCalは、いま使っているGoogleカレンダーに最初から直接予定を書き込みます。新しいアプリの操作を覚える必要はありません。"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "海外のホテル予約メールも登録できますか？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "はい。テキストから都市名・空港コード・住所などの場所を特定してタイムゾーンを自動判定し、Googleカレンダーが持つ標準のタイムゾーンデータベースで変換します。夏時間（サマータイム）の切り替えも含めて正確に登録されます。"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "対応言語は？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "日本語、英語、ドイツ語、フランス語、スペイン語の5言語に対応しています。"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "幼稚園や学校の年間予定表（表形式）も読み取れますか？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "対応を進めています。格子状の年間予定表のような複雑なレイアウトは、精度を向上させている段階です。現在は1枚の画像につき1つの予定の登録に対応しています。"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "料金はいくらですか？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "無料プランでは月3回まで利用できます。プレミアムプランは月額1ドルで月30回まで利用でき、解析に失敗した場合は回数を消費しません。"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "アップロードした画像はどう扱われますか？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "画像は解析完了後、サーバーから即時削除されます。取得したGoogleユーザーデータをAI/MLモデルの学習に利用することもありません。"
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
+    <style>
+        /* 1ページLP追加スタイル */
+        .section-divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+            margin: 0 auto 40px;
+            border-radius: 2px;
+        }
+        .steps-section {
+            padding: 80px 0;
+            background: #fff;
+        }
+        .steps-section h2 {
+            text-align: center;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+        .step-card {
+            background: var(--bg-main);
+            border: 1px solid var(--ai-accent);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .step-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.07);
+            border-color: var(--gold);
+        }
+        .step-num {
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: var(--gold);
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .step-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .step-card h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text-main); }
+        .step-card p { font-size: 0.88rem; color: var(--text-sub); line-height: 1.5; }
+        .steps-more {
+            text-align: center;
+            margin-top: 32px;
+            font-size: 0.9rem;
+        }
+        .steps-more a { color: var(--gold); font-weight: 700; text-decoration: none; }
+        .steps-more a:hover { text-decoration: underline; }
+
+        /* ヒーロー補足ノート */
+        .copy-note {
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            margin: -20px auto 36px;
+            max-width: 560px;
+            line-height: 1.5;
+        }
+
+        /* 問題提起セクション */
+        .problem-section {
+            padding: 80px 0;
+            background: var(--bg-main);
+        }
+        .problem-section h2 {
+            text-align: center;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+        .problem-list {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 0;
+            list-style: none;
+            text-align: left;
+        }
+        .problem-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 16px;
+            color: var(--text-sub);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .problem-list li::before {
+            content: "✕";
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+            font-weight: 900;
+        }
+        .lead-quote {
+            max-width: 640px;
+            margin: 36px auto 0;
+            padding: 20px 28px;
+            border-left: 4px solid var(--gold);
+            background: #fff;
+            border-radius: 0 16px 16px 0;
+            font-weight: 700;
+            color: var(--text-main);
+            text-align: left;
+            font-size: 1.05rem;
+        }
+
+        /* 差別化3本柱 */
+        .pillars-section {
+            padding: 80px 0;
+            background: #fff;
+        }
+        .pillars-section h2 {
+            text-align: center;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+        .pillars-section .feature-card { text-align: left; }
+        .pillars-section .feature-card h3 { font-size: 1.2rem; }
+        .pillar-quote {
+            max-width: 640px;
+            margin: 40px auto 0;
+            text-align: center;
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        /* 比較セクション */
+        .compare-section {
+            padding: 80px 0;
+            background: var(--bg-main);
+        }
+        .compare-section h2 {
+            text-align: center;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+        .compare-wrap { overflow-x: auto; margin-top: 40px; }
+        .compare-table {
+            width: 100%;
+            min-width: 560px;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+            border: 1px solid var(--ai-accent);
+            border-radius: 16px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+        .compare-table th, .compare-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--ai-accent);
+            text-align: left;
+            vertical-align: top;
+            line-height: 1.6;
+        }
+        .compare-table tr:last-child th, .compare-table tr:last-child td { border-bottom: none; }
+        .compare-table thead th {
+            background: var(--bg-main);
+            font-weight: 900;
+            color: var(--text-main);
+        }
+        .compare-table thead th.col-oneshot { color: var(--gold); }
+        .compare-table tbody th {
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+        .compare-table td { color: var(--text-sub); }
+        .compare-table td.col-oneshot { color: var(--text-main); font-weight: 700; }
+        .compare-note {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        /* ユースケース */
+        .usecase-section {
+            padding: 80px 0;
+            background: var(--bg-main);
+        }
+        .usecase-section h2 {
+            text-align: center;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+        .usecase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+        .usecase-card {
+            background: #fff;
+            border: 1px solid var(--ai-accent);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: left;
+        }
+        .usecase-card .u-icon { font-size: 2.2rem; margin-bottom: 12px; }
+        .usecase-card h3 { font-size: 1.1rem; margin: 0 0 8px; color: var(--text-main); }
+        .usecase-card p { font-size: 0.88rem; color: var(--text-sub); line-height: 1.6; margin: 0; }
+        .usecase-card .u-note { display: block; font-size: 0.78rem; margin-top: 10px; }
+
+        /* 開発ストーリー */
+        .story-section {
+            padding: 80px 0;
+            background: #fff;
+        }
+        .story-section h2 {
+            text-align: center;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+        .story-body {
+            max-width: 680px;
+            margin: 0 auto;
+            text-align: left;
+            color: var(--text-sub);
+            font-size: 0.95rem;
+            line-height: 2;
+        }
+        .story-body strong { color: var(--text-main); }
+
+        /* FAQ（lp-style.cssの.faqを利用、余白のみ調整） */
+        .faq { padding: 80px 0; }
+        .faq-item { background: #fff; border-radius: 16px; padding: 24px 28px; border: 1px solid rgba(255,255,255,0.6); }
+        .faq-item h4 { margin-top: 0; }
+        .faq-item p { margin-bottom: 0; line-height: 1.7; }
+
+        /* 安心セクション */
+        .trust-section {
+            padding: 80px 0;
+            background: var(--bg-main);
+        }
+        .trust-section h2 {
+            text-align: center;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .trust-grid-lp {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .trust-card-lp {
+            background: #fff;
+            border: 1px solid var(--ai-accent);
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+        }
+        .trust-card-lp .t-icon { font-size: 2rem; margin-bottom: 10px; }
+        .trust-card-lp h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; color: var(--text-main); }
+        .trust-card-lp p { font-size: 0.82rem; color: var(--text-sub); line-height: 1.5; margin: 0; }
+
+        /* 料金セクション */
+        .pricing-section {
+            padding: 80px 0;
+            background: #fff;
+        }
+        .pricing-section h2 {
+            text-align: center;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .price-card {
+            border: 2px solid var(--ai-accent);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: center;
+            background: var(--bg-main);
+        }
+        .price-card.featured {
+            border-color: var(--gold);
+            background: #fff;
+            box-shadow: 0 8px 30px rgba(212,175,55,0.15);
+        }
+        .price-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+        }
+        .price-label { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 8px; }
+        .price-amount { font-size: 2.2rem; font-weight: 900; color: var(--text-main); line-height: 1; }
+        .price-unit { font-size: 0.8rem; color: var(--text-sub); margin-top: 4px; }
+        .price-feature { font-size: 0.85rem; color: var(--text-sub); margin-top: 16px; line-height: 1.6; }
+
+        /* 最終CTA */
+        .final-cta {
+            padding: 80px 0;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(212,175,55,0.06) 0%, var(--bg-main) 70%);
+        }
+        .final-cta h2 {
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .final-cta p {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+
+        /* デモ動画 PC/スマホ出し分け: JSで制御 */
+        .demo-pc { display: block; }
+        .demo-mobile { display: none; }
+        @media (max-width: 768px) {
+            .steps-section, .trust-section, .pricing-section, .final-cta,
+            .problem-section, .pillars-section, .compare-section,
+            .usecase-section, .story-section, .faq { padding: 60px 0; }
+            .pricing-grid { grid-template-columns: 1fr; max-width: 320px; }
+            .compare-table { font-size: 0.82rem; }
+            .faq-grid { grid-template-columns: 1fr; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ① ヒーロー -->
+    <section class="hero">
+        <div class="container">
+            <div class="logo-wrapper">
+                <img src="img/logo.png" alt="OneShotCal logo" class="hero-logo">
+            </div>
+            <h1 id="main-copy"
+                data-ja="新しいアプリは、要りません。<br>今のGoogleカレンダーが、賢くなるだけです。"
+                data-en="No new app to learn.<br>Your Google Calendar just gets smarter."
+                data-de="Keine neue App nötig.<br>Ihr Google Kalender wird einfach schlauer."
+                data-fr="Pas de nouvelle appli à apprendre.<br>Votre Google Agenda devient simplement plus intelligent."
+                data-es="No necesitas una nueva app.<br>Tu Google Calendar simplemente se vuelve más inteligente.">新しいアプリは、要りません。<br>今のGoogleカレンダーが、賢くなるだけです。</h1>
+            <p id="sub-copy"
+                data-ja="写真、またはテキストのコピペだけで、ホテルの予約確認メールも、海外の予定も、時差込みで正確にGoogleカレンダーへ。<br>二重管理は、もうしなくていい。"
+                data-en="Just a photo — or pasted text. Hotel confirmation emails and overseas plans land in your Google Calendar, time zones handled correctly.<br>No more double bookkeeping."
+                data-de="Nur ein Foto — oder eingefügter Text. Hotelbestätigungen und Auslandstermine landen mit korrekter Zeitzone direkt in Ihrem Google Kalender."
+                data-fr="Une photo — ou un texte collé. Vos e-mails de réservation et rendez-vous à l'étranger arrivent dans votre Google Agenda, fuseaux horaires inclus."
+                data-es="Solo una foto — o texto pegado. Tus correos de reserva y planes en el extranjero llegan a tu Google Calendar con la zona horaria correcta.">写真、またはテキストのコピペだけで、ホテルの予約確認メールも、海外の予定も、時差込みで正確にGoogleカレンダーへ。<br>二重管理は、もうしなくていい。</p>
+            <p class="copy-note">※メールが長くて画面に収まらない場合は、本文をそのままコピペして貼り付けても登録できます。</p>
+            <div class="cta-wrapper">
+                <a href="/auth/google" id="cta-button" class="btn-gold"
+                    data-ja="今すぐ試す（写真1枚から）"
+                    data-en="Try It Now — Start with One Photo"
+                    data-de="Jetzt testen — mit einem Foto"
+                    data-fr="Essayer maintenant — avec une photo"
+                    data-es="Probar ahora — con una foto">今すぐ試す（写真1枚から）</a>
+                <p class="terms-agree"
+                    data-ja="続行すると<a href='/terms'>利用規約</a>と<a href='/privacy'>プライバシーポリシー</a>に同意したことになります"
+                    data-en="By continuing, you agree to our <a href='/terms'>Terms</a> and <a href='/privacy'>Privacy Policy</a>."
+                    data-de="Mit dem Fortfahren stimmen Sie unseren <a href='/terms'>AGB</a> und der <a href='/privacy'>Datenschutzrichtlinie</a> zu."
+                    data-fr="En continuant, vous acceptez nos <a href='/terms'>CGU</a> et notre <a href='/privacy'>Politique de confidentialité</a>."
+                    data-es="Al continuar, aceptas nuestros <a href='/terms'>Términos</a> y la <a href='/privacy'>Política de privacidad</a>.">続行すると<a href='/terms'>利用規約</a>と<a href='/privacy'>プライバシーポリシー</a>に同意したことになります</p>
+                <p class="trust-note"
+                    data-ja="🔒 Googleのセキュリティ基準を遵守。まず3回無料でお試しいただけます。"
+                    data-en="🔒 Google security compliant. Try free 3 times first."
+                    data-de="🔒 Google-Sicherheitsstandards. 3 kostenlose Versuche."
+                    data-fr="🔒 Conforme aux normes Google. 3 essais gratuits."
+                    data-es="🔒 Cumple estándares Google. 3 intentos gratuitos.">🔒 Googleのセキュリティ基準を遵守。まず3回無料でお試しいただけます。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- デモ動画 PC/スマホ出し分け -->
+    <section style="padding: 0 0 80px; background: radial-gradient(circle at center, #ffffff 0%, var(--bg-main) 70%); text-align: center;">
+        <div class="container">
+            <!-- PC用 -->
+            <video class="demo-pc"
+                src="/lp-demo.mp4"
+                autoplay loop muted playsinline
+                style="width: 100%; max-width: 760px; border-radius: 16px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); display: block; margin: 0 auto;">
+            </video>
+            <!-- スマホ用 -->
+            <video class="demo-mobile"
+                src="/lp-demo-mobile.mp4"
+                autoplay loop muted playsinline
+                style="width: 100%; max-width: 360px; border-radius: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.15); display: block; margin: 0 auto;">
+            </video>
+        </div>
+    </section>
+
+    <!-- ② 問題提起 -->
+    <section class="problem-section">
+        <div class="container">
+            <h2>カレンダーアプリ、何個持っていますか？</h2>
+            <div class="section-divider"></div>
+            <ul class="problem-list">
+                <li>家族の予定はTimeTree、仕事の予定はGoogleカレンダー。両方を見ないと、今日の予定がわからない。</li>
+                <li>共有カレンダーアプリとGoogleカレンダーの連携は設定が煩雑で、同期の方向や条件がOSやバージョンによって異なります。</li>
+                <li>結局、確認漏れが起きる。</li>
+            </ul>
+            <p class="lead-quote">「今使っているカレンダーが、そのまま賢くなればいいのに。」</p>
+        </div>
+    </section>
+
+    <!-- ③ 差別化ポイント（3本柱） -->
+    <section class="pillars-section">
+        <div class="container">
+            <h2>OneShotCalが選ばれる3つの理由</h2>
+            <div class="section-divider"></div>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📅</div>
+                    <h3>新しい場所を、増やさない</h3>
+                    <p>OneShotCalは、写真やスクリーンショットから読み取った予定を、あなたが今使っているGoogleカレンダーに直接書き込みます。専用アプリを開く必要も、別カレンダーとの同期設定も要りません。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🌍</div>
+                    <h3>時差を「計算」していないから、間違えない</h3>
+                    <p>海外ホテルの予約メールは、現地時間・サーバー時間・表記形式がバラバラで、時差の変換ミスが起きやすいポイントです。OneShotCalは、自分で時刻をUTC変換することをしません。テキストから場所（都市・国・空港コード・住所）を特定し、Googleカレンダー自身が持つ世界標準のタイムゾーンデータベースに変換を委ねます。夏時間の切り替えも、州によって夏時間を採用しない例外（アリゾナ、ハワイなど）も、計算ミスのしようがない設計です。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🌐</div>
+                    <h3>海外の予定も、そのまま</h3>
+                    <p>日本語・英語・ドイツ語・フランス語・スペイン語の5言語に対応。海外旅行の予約確認メールも、翻訳しながら正確にカレンダーへ登録します。</p>
+                </div>
+            </div>
+            <p class="pillar-quote">「賢いから正確」ではなく、<br>「そもそも間違えようがない仕組みだから正確」。</p>
+        </div>
+    </section>
+
+    <!-- ④ 比較セクション -->
+    <section class="compare-section">
+        <div class="container">
+            <h2>共有カレンダーアプリとの違い</h2>
+            <div class="section-divider"></div>
+            <div class="compare-wrap">
+                <table class="compare-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th class="col-oneshot">OneShotCal</th>
+                            <th>共有カレンダーアプリ（TimeTreeなど）</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>予定の保存先</th>
+                            <td class="col-oneshot">今使っているGoogleカレンダー</td>
+                            <td>専用アプリ内のカレンダー</td>
+                        </tr>
+                        <tr>
+                            <th>Googleカレンダーとの連携</th>
+                            <td class="col-oneshot">不要（最初から直接登録）</td>
+                            <td>別途設定が必要で、同期の方向や条件に制限がある場合があります</td>
+                        </tr>
+                        <tr>
+                            <th>予定の入力方法</th>
+                            <td class="col-oneshot">写真・スクリーンショット・テキストの貼り付けから自動読み取り</td>
+                            <td>手入力が基本（アプリによる）</td>
+                        </tr>
+                        <tr>
+                            <th>時差の扱い</th>
+                            <td class="col-oneshot">場所を特定し、Googleカレンダーのタイムゾーンデータベースに変換を委ねる設計</td>
+                            <td>アプリによる</td>
+                        </tr>
+                        <tr>
+                            <th>新しく覚える操作</th>
+                            <td class="col-oneshot">なし（今のGoogleカレンダーをそのまま使う）</td>
+                            <td>専用アプリの操作を新しく覚える必要</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="compare-note">※ 2026年7月時点の公開情報に基づく一般的な比較です。他社サービスの仕様は変更される場合があります。最新の情報は各サービスの公式サイトをご確認ください。</p>
+        </div>
+    </section>
+
+    <!-- ⑤ 使い方（3ステップ） -->
+    <section class="steps-section">
+        <div class="container">
+            <h2 data-ja="3ステップで完了" data-en="3 Simple Steps" data-de="3 einfache Schritte" data-fr="3 étapes simples" data-es="3 pasos simples">3ステップで完了</h2>
+            <div class="section-divider"></div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <span class="step-num">STEP 01</span>
+                    <div class="step-icon">📷</div>
+                    <h3 data-ja="撮る・コピーする" data-en="Capture or Copy" data-de="Aufnehmen oder Kopieren" data-fr="Capturer ou Copier" data-es="Capturar o Copiar">撮る・コピーする</h3>
+                    <p data-ja="チラシや予定表を撮影、またはメール文章をコピー。" data-en="Snap a flyer or copy text from email." data-de="Foto vom Flyer oder Text aus E-Mail kopieren." data-fr="Photographiez un flyer ou copiez le texte d'un e-mail." data-es="Fotografía un flyer o copia texto de un email.">チラシや予定表を撮影、またはメール文章をコピー。</p>
+                </div>
+                <div class="step-card">
+                    <span class="step-num">STEP 02</span>
+                    <div class="step-icon">🤖</div>
+                    <h3 data-ja="AIが解析" data-en="AI Analyzes" data-de="KI analysiert" data-fr="L'IA analyse" data-es="La IA analiza">AIが解析</h3>
+                    <p data-ja="Gemini AIが日時・場所を瞬時に抽出。画像は解析後即削除。" data-en="Gemini AI extracts date, time & location instantly. Images deleted right after." data-de="Gemini KI extrahiert Datum, Zeit & Ort. Bild wird sofort gelöscht." data-fr="L'IA Gemini extrait date, heure & lieu. Image supprimée aussitôt." data-es="La IA Gemini extrae fecha, hora y lugar. Imagen eliminada de inmediato.">Gemini AIが日時・場所を瞬時に抽出。画像は解析後即削除。</p>
+                </div>
+                <div class="step-card">
+                    <span class="step-num">STEP 03</span>
+                    <div class="step-icon">📅</div>
+                    <h3 data-ja="カレンダーへ登録" data-en="Synced to Calendar" data-de="Im Kalender gespeichert" data-fr="Synchronisé avec l'agenda" data-es="Guardado en el calendario">カレンダーへ登録</h3>
+                    <p data-ja="Googleカレンダーに自動登録。内容を確認して完了！" data-en="Auto-added to Google Calendar. Verify and done!" data-de="Automatisch zu Google Kalender hinzugefügt. Prüfen und fertig!" data-fr="Ajouté automatiquement à Google Agenda. Vérifiez et c'est fait !" data-es="Añadido automáticamente a Google Calendar. ¡Verifica y listo!">Googleカレンダーに自動登録。内容を確認して完了！</p>
+                </div>
+            </div>
+            <p class="steps-more"><a href="/how-to">詳しい使い方を見る →</a></p>
+        </div>
+    </section>
+
+    <!-- ⑥ ユースケース -->
+    <section class="usecase-section">
+        <div class="container">
+            <h2>こんな予定に使えます</h2>
+            <div class="section-divider"></div>
+            <div class="usecase-grid">
+                <div class="usecase-card">
+                    <div class="u-icon">✈️</div>
+                    <h3>海外旅行</h3>
+                    <p>ホテルの予約確認メール、航空券のeチケット。場所からタイムゾーンを判定するため、時差込みで正確に登録されます。</p>
+                </div>
+                <div class="usecase-card">
+                    <div class="u-icon">🎒</div>
+                    <h3>子どものイベント</h3>
+                    <p>園や学校から配られるお知らせのプリントを、撮影するだけで登録できます。<span class="u-note">※格子状の年間予定表など、複数の予定が並ぶ複雑なレイアウトへの対応を進めています。</span></p>
+                </div>
+                <div class="usecase-card">
+                    <div class="u-icon">📝</div>
+                    <h3>日々のちょっとした予定</h3>
+                    <p>手書きのメモや店頭のチラシも、文字が読み取れれば登録できます。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑦ 開発ストーリー -->
+    <section class="story-section">
+        <div class="container">
+            <h2>完璧な多機能アプリを、最初から目指したわけではありません</h2>
+            <div class="section-divider"></div>
+            <div class="story-body">
+                <p>最初は、園から配られる年間予定表のような複雑なレイアウトを正確に読み取ることを目指していました。ですが、格子状の表は当初うまくいきませんでした。少しずつ方向を変えながら開発を続ける中で、多言語対応、そして最終的には<strong>「時差を絶対に間違えない」仕組み</strong>にたどり着きました。</p>
+                <p>一つの理想からではなく、試行錯誤の積み重ねから生まれた機能です。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑧ 安心材料 -->
+    <section class="trust-section">
+        <div class="container">
+            <h2 data-ja="安心して使える理由" data-en="Why You Can Trust Us" data-de="Warum Sie uns vertrauen können" data-fr="Pourquoi nous faire confiance" data-es="Por qué puedes confiar en nosotros">安心して使える理由</h2>
+            <div class="section-divider"></div>
+            <div class="trust-grid-lp">
+                <div class="trust-card-lp">
+                    <div class="t-icon">🔒</div>
+                    <h4 data-ja="Google公式審査済み" data-en="Google Verified" data-de="Google-geprüft" data-fr="Vérifié par Google" data-es="Verificado por Google">Google公式審査済み</h4>
+                    <p data-ja="Googleの厳格なセキュリティ審査をクリアした安全なサービスです。" data-en="Passed Google's strict security review." data-de="Hat Googles strenge Sicherheitsprüfung bestanden." data-fr="A passé l'examen de sécurité strict de Google." data-es="Ha superado la estricta revisión de seguridad de Google.">Googleの厳格なセキュリティ審査をクリアした安全なサービスです。</p>
+                </div>
+                <div class="trust-card-lp">
+                    <div class="t-icon">🗑️</div>
+                    <h4 data-ja="画像は即削除" data-en="Images Deleted Instantly" data-de="Bilder sofort gelöscht" data-fr="Images supprimées aussitôt" data-es="Imágenes eliminadas al instante">画像は即削除</h4>
+                    <p data-ja="アップロードされた画像は解析完了後、サーバーから即時削除されます。" data-en="Uploaded images are deleted from servers immediately after analysis." data-de="Hochgeladene Bilder werden sofort nach der Analyse gelöscht." data-fr="Les images sont supprimées immédiatement après l'analyse." data-es="Las imágenes se eliminan inmediatamente después del análisis.">アップロードされた画像は解析完了後、サーバーから即時削除されます。</p>
+                </div>
+                <div class="trust-card-lp">
+                    <div class="t-icon">🚫</div>
+                    <h4 data-ja="AIの学習に不使用" data-en="Not Used for AI Training" data-de="Nicht für KI-Training verwendet" data-fr="Non utilisé pour l'entraînement IA" data-es="No se usa para entrenamiento de IA">AIの学習に不使用</h4>
+                    <p data-ja="取得したGoogleユーザーデータをAI/MLモデルの学習に利用しません。" data-en="Google user data is never used for AI/ML model training." data-de="Google-Nutzerdaten werden nie für KI/ML-Training verwendet." data-fr="Les données Google ne sont jamais utilisées pour l'entraînement IA." data-es="Los datos de Google nunca se usan para entrenar modelos de IA.">取得したGoogleユーザーデータをAI/MLモデルの学習に利用しません。</p>
+                </div>
+                <div class="trust-card-lp">
+                    <div class="t-icon">🤝</div>
+                    <h4 data-ja="第三者提供なし" data-en="No Third-party Sharing" data-de="Keine Weitergabe an Dritte" data-fr="Pas de partage avec des tiers" data-es="Sin compartir con terceros">第三者提供なし</h4>
+                    <p data-ja="ユーザーの同意なく、データを第三者に販売・提供しません。" data-en="Data is never sold or shared without your consent." data-de="Daten werden ohne Ihre Zustimmung nicht verkauft oder weitergegeben." data-fr="Les données ne sont jamais vendues sans votre consentement." data-es="Los datos nunca se venden sin tu consentimiento.">ユーザーの同意なく、データを第三者に販売・提供しません。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑨ 料金 -->
+    <section class="pricing-section">
+        <div class="container">
+            <h2 data-ja="シンプルな料金体系" data-en="Simple Pricing" data-de="Einfache Preisgestaltung" data-fr="Tarification simple" data-es="Precios simples">シンプルな料金体系</h2>
+            <div class="section-divider"></div>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <div class="price-label" data-ja="まずは無料で" data-en="Start Free" data-de="Kostenlos starten" data-fr="Commencer gratuitement" data-es="Empieza gratis">まずは無料で</div>
+                    <div class="price-amount">$0</div>
+                    <div class="price-unit" data-ja="月3回まで" data-en="3 times / month" data-de="3 Mal / Monat" data-fr="3 fois / mois" data-es="3 veces / mes">月3回まで</div>
+                    <div class="price-feature" data-ja="登録不要で今すぐ試せる" data-en="Try right now, no commitment" data-de="Jetzt ausprobieren, keine Verpflichtung" data-fr="Essayez maintenant sans engagement" data-es="Prueba ahora sin compromiso">登録不要で今すぐ試せる</div>
+                </div>
+                <div class="price-card featured">
+                    <div class="price-badge" data-ja="プレミアム" data-en="PREMIUM" data-de="PREMIUM" data-fr="PREMIUM" data-es="PREMIUM">PREMIUM</div>
+                    <div class="price-label" data-ja="もっと使いたい方へ" data-en="For power users" data-de="Für Power-User" data-fr="Pour les utilisateurs intensifs" data-es="Para usuarios intensivos">もっと使いたい方へ</div>
+                    <div class="price-amount">$1</div>
+                    <div class="price-unit" data-ja="/ 月（自動更新）" data-en="/ month (auto-renew)" data-de="/ Monat (automatische Verlängerung)" data-fr="/ mois (renouvellement auto)" data-es="/ mes (renovación automática)">/ 月（自動更新）</div>
+                    <div class="price-feature" data-ja="月30回まで<br>解析失敗は回数消費なし" data-en="30 times / month<br>Failed analysis doesn't count" data-de="30 Mal / Monat<br>Fehlgeschlagene Analysen zählen nicht" data-fr="30 fois / mois<br>Les échecs ne comptent pas" data-es="30 veces / mes<br>Los fallos no cuentan">月30回まで<br>解析失敗は回数消費なし</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑩ FAQ（GEO対策の核・FAQPage構造化データと対応） -->
+    <section class="faq">
+        <div class="container">
+            <h2>よくある質問</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h4>Q. TimeTreeと何が違いますか？</h4>
+                    <p>A. TimeTreeは専用アプリの中に予定を保存する共有カレンダーアプリで、Googleカレンダーと併用するには別途連携設定が必要です。OneShotCalは、いま使っているGoogleカレンダーに最初から直接予定を書き込みます。新しいアプリの操作を覚える必要はありません。</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Q. 海外のホテル予約メールも登録できますか？</h4>
+                    <p>A. はい。テキストから都市名・空港コード・住所などの場所を特定してタイムゾーンを自動判定し、Googleカレンダーが持つ標準のタイムゾーンデータベースで変換します。夏時間（サマータイム）の切り替えも含めて正確に登録されます。</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Q. 対応言語は？</h4>
+                    <p>A. 日本語、英語、ドイツ語、フランス語、スペイン語の5言語に対応しています。</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Q. 幼稚園や学校の年間予定表（表形式）も読み取れますか？</h4>
+                    <p>A. 対応を進めています。格子状の年間予定表のような複雑なレイアウトは、精度を向上させている段階です。現在は1枚の画像につき1つの予定の登録に対応しています。</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Q. 料金はいくらですか？</h4>
+                    <p>A. 無料プランでは月3回まで利用できます。プレミアムプランは月額1ドルで月30回まで利用でき、解析に失敗した場合は回数を消費しません。</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Q. アップロードした画像はどう扱われますか？</h4>
+                    <p>A. 画像は解析完了後、サーバーから即時削除されます。取得したGoogleユーザーデータをAI/MLモデルの学習に利用することもありません。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑪ 最終CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <h2 data-ja="さあ、はじめよう。" data-en="Ready to start?" data-de="Bereit loszulegen?" data-fr="Prêt à commencer ?" data-es="¿Listo para empezar?">さあ、はじめよう。</h2>
+            <p data-ja="まずは3回、無料でお試しください。" data-en="Try it free — no credit card needed." data-de="3 kostenlose Versuche — keine Kreditkarte nötig." data-fr="3 essais gratuits — sans carte bancaire." data-es="3 intentos gratuitos — sin tarjeta de crédito.">まずは3回、無料でお試しください。</p>
+            <a href="/auth/google" class="btn-gold"
+                data-ja="Googleではじめる"
+                data-en="Start with Google"
+                data-de="Mit Google starten"
+                data-fr="Commencer avec Google"
+                data-es="Empezar con Google">Googleではじめる</a>
+        </div>
+    </section>
+
+    <!-- モーダル -->
+    <div id="legal-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <iframe id="modal-iframe" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 oneshotcal. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="https://oneshotcal.com/privacy">Privacy Policy</a>
+                <a href="https://oneshotcal.com/terms">Terms of Service</a>
+                <a href="javascript:void(0)" id="footer-tokusho-link" onclick="openSctaModal()" data-ja="特定商取引法に基づく表記" data-en="Legal Notice" data-de="Impressum" data-fr="Mentions légales" data-es="Aviso legal">特定商取引法に基づく表記</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ログイン済みチェック → /app にリダイレクト
+        (function() {
+            const subId = localStorage.getItem('oneshot_subId');
+            const hasCookie = document.cookie.includes('session');
+            if (subId || hasCookie) {
+                window.location.href = '/app';
+            }
+        })();
+
+        function openModal(type) {
+            const modal = document.getElementById('legal-modal');
+            const iframe = document.getElementById('modal-iframe');
+            iframe.src = '/' + type;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openSctaModal() {
+            const modal = document.getElementById('legal-modal');
+            const iframe = document.getElementById('modal-iframe');
+            const isEn = (localStorage.getItem('preferredLanguage') || navigator.language.slice(0, 2)) !== 'ja';
+            iframe.src = isEn ? '/tokusho-en.html' : '/tokusho.html';
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('legal-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('legal-modal');
+            if (event.target == modal) closeModal();
+        }
+    </script>
+    <script>
+        // デモ動画をuserAgentで出し分け
+        (function() {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const pc = document.querySelector('.demo-pc');
+            const mobile = document.querySelector('.demo-mobile');
+            if (!pc || !mobile) return;
+            if (isMobile) {
+                pc.style.display = 'none';
+                mobile.style.display = 'block';
+            } else {
+                pc.style.display = 'block';
+                mobile.style.display = 'none';
+            }
+        })();
+    </script>
+    <script src="js/lp-app.js?v=2"></script>
+</body>
+</html>

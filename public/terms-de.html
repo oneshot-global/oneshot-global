@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - oneshotcal</title>
+    <meta name="description" content="oneshotcal Terms of Service. One-tap Google Calendar registration from images. (利用規約 - 画像からカレンダーへ一撃登録)">
+    <link rel="icon" type="image/png" href="img/icon2.png">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; padding: 20px; color: #334155; max-width: 800px; margin: 0 auto; background: #fff; }
+        h1 { border-bottom: 2px solid #007aff; padding-bottom: 10px; color: #1e293b; font-size: 1.5rem; }
+        h2 { font-size: 1.1rem; margin-top: 25px; color: #1e293b; border-left: 4px solid #007aff; padding-left: 10px; }
+        .lang-ja, .lang-en { display: none; }
+        ul { padding-left: 20px; margin: 10px 0; }
+        li { margin-bottom: 5px; }
+        a { color: #007aff; text-decoration: none; font-weight: bold; }
+        hr { border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0; }
+        @media (max-width: 600px) { body { padding: 15px; font-size: 14px; } }
+    </style>
+</head>
+<body>
+    <h1 class="lang-en">Terms of Service</h1>
+    <h1 class="lang-ja">利用規約</h1>
+    
+    <p class="lang-en">Last Updated: February 9, 2026</p>
+    <p class="lang-ja">最終更新日: 2026年2月9日</p>
+
+    <section>
+        <h2 class="lang-en">1. Service</h2>
+        <h2 class="lang-ja">1. サービスの利用</h2>
+        <p class="lang-en">This tool adds events to your calendar via image analysis. Accuracy is not guaranteed and depends on image quality. Always verify Gemini AI analysis before confirming registration.</p>
+        <p class="lang-ja">本サービスは画像を解析してカレンダーに登録するツールです。解析精度は画像の状態に依存し、情報の正確性を保証するものではありません。Gemini AIの解析結果を必ずユーザー自身で確認した上で登録を確定してください。</p>
+    </section>
+
+    <section>
+        <h2 class="lang-en">2. Payment and Subscription</h2>
+        <h2 class="lang-ja">2. 決済およびサブスクリプション</h2>
+        <ul class="lang-en">
+            <li>The Premium Plan is a monthly auto-renewing service.</li>
+            <li>You will be billed automatically unless you cancel before the period ends.</li>
+            <li>No pro-rated refunds are provided for mid-month cancellations.</li>
+        </ul>
+        <ul class="lang-ja">
+            <li>プレミアムプランは月額制の自動更新サービスです。</li>
+            <li>有効期間が終了する前に解約手続きを行わない限り、翌月分が自動的に決済されます。</li>
+            <li>月の途中で解約した場合でも、有効期間内はサービスを利用可能ですが、日割りによる返金は一切行いません。</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 class="lang-en">3. Restrictions</h2>
+        <h2 class="lang-ja">3. 禁止事項</h2>
+        <p class="lang-en">Intentional error generation or overloading the server is prohibited. Violations may result in an immediate account ban without notice.</p>
+        <p class="lang-ja">意図的な大量のエラー発生、サーバーへの負荷をかける行為、および運営を妨害する行為を禁止します。違反が検知された場合、事前の通知なくアカウントを停止（BAN）することがあります。</p>
+    </section>
+
+    <section>
+        <h2 class="lang-en">4. Liability and Refunds</h2>
+        <h2 class="lang-ja">4. 免責・返金</h2>
+        <p class="lang-en">The operator is not liable for registration errors, data mismatch, or service interruptions. Refunds are not accepted for digital content or subscriptions for any reason.</p>
+        <p class="lang-ja">本サービスによる登録ミス、データの不整合、またはサービスの一時的な中断について運営者は一切の責任を負いません。デジタルコンテンツおよびサブスクリプションの性質上、決済完了後の返金は理由を問わず受け付けておりません。</p>
+    </section>
+
+    <hr>
+    <a href="/" class="lang-en">← Back to Home</a>
+    <a href="/" class="lang-ja">← トップページに戻る</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userLang = navigator.language || navigator.userLanguage;
+            const isJa = userLang.startsWith('ja');
+            const showClass = isJa ? '.lang-ja' : '.lang-en';
+            
+            document.querySelectorAll(showClass).forEach(el => {
+                el.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

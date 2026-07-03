@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - oneshotcal</title>
+    <meta name="description" content="Verified by Google. Images are deleted immediately after sync. oneshotcal ensures your privacy and security. (Google認定・画像は解析後即削除。安全なプライバシー設計)">
+    <link rel="icon" type="image/png" href="img/icon2.png">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; padding: 20px; color: #334155; max-width: 800px; margin: 0 auto; background: #fff; }
+        h1 { border-bottom: 2px solid #007aff; padding-bottom: 10px; color: #1e293b; font-size: 1.5rem; }
+        h2 { font-size: 1.1rem; margin-top: 25px; color: #1e293b; border-left: 4px solid #007aff; padding-left: 10px; }
+        .lang-ja, .lang-en { display: none; }
+        a { color: #007aff; text-decoration: none; font-weight: bold; }
+        @media (max-width: 600px) { body { padding: 15px; font-size: 14px; } }
+    </style>
+</head>
+<body>
+    <h1 class="lang-en">Privacy Policy</h1>
+    <h1 class="lang-ja">プライバシーポリシー</h1>
+    
+    <p class="lang-en">Last Updated: February 15, 2026</p>
+    <p class="lang-ja">最終更新日: 2026年2月15日</p>
+
+    <section>
+        <h2 class="lang-en">1. Collection and Usage</h2>
+        <h2 class="lang-ja">1. 取得する情報および利用目的</h2>
+        <p class="lang-en">We collect basic Google account info (ID, email) and images uploaded for calendar registration. These are used solely for authentication, subscription management, and adding events. Images are deleted immediately after analysis. Google user data is not used for training or improving AI/ML models.</p>
+        <p class="lang-ja">Googleアカウントの基本情報（ID、メールアドレス）およびカレンダー登録のためにアップロードされた画像を取得します。これらは認証、サブスクリプション管理、および予定追加のためにのみ利用されます。画像データは解析後、直ちにサーバーから削除されます。また、取得したGoogleユーザーデータをAI/MLモデルのトレーニングや改善のために利用することはありません。</p>
+    </section>
+
+    <section>
+        <h2 class="lang-en">2. Disclaimer on AI Analysis</h2>
+        <h2 class="lang-ja">2. AI解析に関する免責事項</h2>
+        <p class="lang-en">This service performs analysis using Google Gemini API. Accuracy depends on image quality and is not guaranteed. The operator is not liable for damages arising from analysis errors (e.g., misregistration). Users must always verify the results.</p>
+        <p class="lang-ja">本サービスはGoogle Gemini APIを使用して画像解析を行います。解析精度は画像の状態に依存し、情報の正確性を保証するものではありません。解析結果の誤りに起因する損害（予定の誤登録等）について、運営者は一切の責任を負いません。登録内容は必ずユーザー自身で確認してください。</p>
+    </section>
+
+    <section>
+        <h2 class="lang-en">3. Limited Use of Google API Data</h2>
+        <h2 class="lang-ja">3. Google APIデータの限定的利用</h2>
+        <p class="lang-en">Use and transfer to any other app of information received from Google APIs will adhere to Google API Service User Data Policy, including the Limited Use requirements. We do not sell, share, or transfer Google user data to third parties without explicit user consent.</p>
+        <p class="lang-ja">Google APIから受信した情報の使用および他アプリへの転送は、Google APIサービスユーザーデータポリシー（限定的利用要件を含む）を遵守します。取得したデータを広告配信に利用したり、ユーザーの明示的な同意なく第三者に販売、共有、または提供することはありません。</p>
+    </section>
+
+    <section>
+        <h2 class="lang-en">4. Data Security</h2>
+        <h2 class="lang-ja">4. データの保持と安全管理</h2>
+        <p class="lang-en">Personal data is securely managed via Firestore on Google Cloud. We implement industry-standard encryption (SSL/TLS) and maintain strict access controls to protect your data. Users may revoke access via Google account settings at any time. For deletion requests, contact a463311a@gmail.com.</p>
+        <p class="lang-ja">ユーザーの個人データは、Google Cloud上のセキュアなデータベース（Firestore）で厳重に管理されます。データ保護のため、業界標準の暗号化技術（SSL/TLS）を用い、厳格なアクセス制御を維持しています。ユーザーはGoogleアカウントの設定からいつでも本サービスへのアクセス権を取り消すことができます。データの削除を希望される場合は、下記お問い合わせ先（a463311a@gmail.com）までご連絡ください。</p>
+    </section>
+
+    <section>
+        <h2 class="lang-en">5. Policy Changes</h2>
+        <h2 class="lang-ja">5. ポリシーの変更</h2>
+        <p class="lang-en">We reserve the right to modify this policy at any time. Changes take effect upon posting on this site.</p>
+        <p class="lang-ja">運営者は本ポリシーを予告なく変更できるものとし、変更後の効力は本サイトに掲載した時点で発生するものとします。</p>
+    </section>
+
+    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+    <a href="/" class="lang-en">← Back to Home</a>
+    <a href="/" class="lang-ja">← トップページに戻る</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userLang = navigator.language || navigator.userLanguage;
+            const isJa = userLang.startsWith('ja');
+            const showClass = isJa ? '.lang-ja' : '.lang-en';
+            
+            document.querySelectorAll(showClass).forEach(el => {
+                el.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

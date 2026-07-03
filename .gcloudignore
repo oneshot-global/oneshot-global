@@ -1,0 +1,7 @@
+*.txt
+*.zip
+*.rar
+*.exe
+.git
+node_modules
+.env

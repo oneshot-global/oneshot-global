@@ -1,0 +1,22 @@
+{
+  "name": "oneshot",
+  "version": "4.0.0",
+  "type": "module",
+  "main": "worker.js",
+  "scripts": {
+    "start": "node worker.js"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^7.0.0",
+    "@google-cloud/vertexai": "^1.0.0",
+    "@google-cloud/vision": "^4.0.0",
+    "busboy": "^1.6.0",
+    "cookie-session": "^2.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "googleapis": "^126.0.0",
+    "sharp": "^0.34.5",
+    "stripe": "^14.25.0"
+  }
+}

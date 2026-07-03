@@ -1,0 +1,308 @@
+今後の切り替え管理
+今後は、メンテナンスの切り替えは worker.js の以下の行だけで管理することになります。
+
+worker.js:
+
+JavaScript
+// メンテナンス設定
+
+false → true
+
+ cd C:\Users\user\Desktop\oneshot2.9
+
+gcloud run deploy oneshot --source . --region us-central1 --project oneshot-rebuild
+ 
+
+IP　確認は　確認くん　
+
+Artifact Registry
+https://oneshotcal.com/travel
+
+
+あなたが取れる案件の判断基準書 v2
+更新日: 2026年5月19日
+前提: AI(Claude)と協働で動くなら、未経験技術もカバー可能
+
+最上位ルール(3つ、これだけ守れば残りは詳細)
+ルール1: 10分でデモ作れる案件は必ずデモ付きで送る
+過去データ:
+
+Loomあり提案 = 反応あり(Drawing Records, Inventory, Form 20)
+Loomなし提案 = 全敗(Invoice PDF, AppSheet, Historical PDF)
+
+Connects 16($2.4)消費するなら、10分のデモ追加は絶対投資。
+「速く出す」より「デモ付きで出す」を優先。
+ルール2: ストック使い回しはしない、案件特化で都度作る
+理由:
+
+10分で作れる = ストック管理コストの方が高い
+クライアントが「私のために作ってくれた」と感じる構造
+「テンプレ送ってきた人」じゃないシグナル
+
+過去Loom(Drawing Records, Inventory, Form 20)は参考資料として保持、でも提案時は新規撮影が原則。
+ルール3: 「俺(Claude)と一緒にやれるか」で判定
+未経験技術でも、以下が揃えばカテゴリB(やれる)に格上げ:
+
+公式ドキュメントが存在する
+REST API / OAuth / 標準的なWeb技術ベース
+1-3日の学習で実装到達可能
+Claude協働でコード書ける
+
+未経験でも避けるべきはフレームワーク級の学習コスト(Flutter, React Native等)。
+
+あなたの稼働実装スタック(2026年5月時点)
+本番運用中(oneshotcal.com)
+カテゴリ技術レベルランタイムNode.js (ESM)本番運用フレームワークExpress本番運用クラウドGoogle Cloud Run本番運用AIGemini 2.0 Flash(構造化出力)本番運用OCRCloud Vision API本番運用画像処理sharp本番運用認証Google OAuth2本番運用カレンダーGoogle Calendar API v3本番運用決済Stripe Checkout + Webhook(冪等性処理)本番運用DBFirestore本番運用フロントバニラJS + CSS(PWA)本番運用Apps ScriptSheets/Docs/Drive自動化複数案件AppSheetStella案件で実装経験中レベルPDF処理pdfplumber/Cloud Vision両方使える案件実績あり
+Claude協働で実装到達可能(カテゴリB)
+
+Make.com / Zapier / n8n ノーコード(数日学習)
+Supabase + Next.js(PostgreSQL知識転用)
+OpenAI / Anthropic API(Gemini経験転用)
+LINE Messaging API(ドキュメント1日)
+Threads API / X API v2(ドキュメント1日)
+Notion / Airtable API(ドキュメント即)
+Playwright / Puppeteer(2-3日)
+RoseRocket / 標準OAuth2系API(ドキュメント1日)
+Base44 / Glide / Softr などのノーコード(数時間-1日)
+BigQuery(SQL知識転用)
+Microsoft Graph API(別エコシステムだが標準OAuth)
+
+避ける(学習コスト大 or エコシステム別)
+
+React Native / Flutter モバイルネイティブ(学習2-3ヶ月)
+iOS Native / Android Native / Kotlin / Swift(別領域)
+PHP / Laravel / WordPress / WooCommerce / Shopify(別言語)
+.NET / C# / Java / Ruby(別言語)
+LiveKit / Pipecat / Voice AI 音声ストリーミング(専門領域)
+Vapi / Retell / Bland / Grok Voice(専門領域)
+Solidity / Web3 / Blockchain(別領域)
+AWS フルスタック(Lambda/DynamoDB)
+GoHighLevel / Vagaro / ClickUp / Hostify 特化SaaS(プラットフォーム固有)
+
+
+案件判定フローチャート
+Step 1: 自動スキップ判定
+1つでも該当 → 即スキップ:
+❌ Payment unverified(基本NG、例外条件は別記)
+❌ Hires 1以上(既に採用済み)
+❌ クライアント Rating 2.0以下(過去フリーランサーが警告)
+❌ Proposals 50+(競争過多)
+❌ 「避ける技術」リスト直撃
+❌ 業界ネイティブ知識必須(NDIS / Medspa / 法律事務所 / 弁護士 / 衣装デザイン等)
+❌ 言語ネイティブ必須(Arabic / Spanish / French等の native)
+❌ ライブビデオコール必須(あなたは音声不可)
+❌ 物理的に不可能(US Location Only等)
+❌ 撒き餌型($5-50 Fixed で大規模実装)
+❌ 「Senior Expert」+ 時給$5-14 の組み合わせ
+❌ 同一クライアントの同一文章複数投稿(スパム発注)
+❌ 「Hi [他人の名前]」で始まる招待文(別人向けの使い回し)
+Step 2: 採用基準ゆるめ(Claude協働前提)
+以下のどれかに当てはまれば、出す方向で検討:
+✅ Proposals < 10(競合少ない)
+✅ Payment verified
+✅ あなたの本番技術ど真ん中(Apps Script / Gemini / Stripe / GCal / Cloud Vision)
+✅ 学習コスト3日以内のカテゴリB技術
+✅ スコープ明確
+✅ クライアントRating 4以上 または $1K+ spent
+判定:
+
+3条件以上 → 自動GO
+2条件 → 条件付きGO
+1条件以下 → 慎重判断
+
+Step 3: Unverified の例外条件
+Unverifiedでも例外的に出す場合:
+○ 投稿文が4段落以上で具体的(スコープ明確、技術選定理由あり)
+○ 仕様書/詳細ドキュメント用意してる(発注者の本気度)
+○ 業界・職業の文脈が見える(個人事業主の自然な投稿)
+○ あなたの本番技術スタックど真ん中
+○ Fixed価格(Hourly Unverifiedは避ける)
+○ 月のUnverified枠 2-3件以内
+Belgium案件(Historical PDF)はこの条件に該当した。
+
+検索キーワード(優先順)
+第1陣(毎日チェック、ど真ん中)
+"Apps Script"
+"Google Apps Script"
+"Gemini API"
+"Cloud Vision OCR"
+"google calendar
+"Stripe webhook"
+"Stripe subscription"
+"AppSheet"
+"PDF to Excel"
+"PDF data extraction"
+第2陣(関連、Claude協働で対応可)
+"Google Sheets automation"
+"Google Workspace automation"
+"OCR Node.js"
+"PDF parsing"
+"CSV transformation"
+"Cloud Run deploy"
+"OAuth Google integration"
+"Email parsing automation"
+"Webhook automation"
+"LINE Messaging API"
+"Threads API"
+"Make.com automation"
+第3陣(ニッチ、競合少)
+"Make.com Gemini"
+"Zapier Gemini"
+"Receipt OCR"
+"Invoice OCR"
+"Inventory automation Sheets"
+"Booking automation Calendar"
+"Firestore"
+"PWA Stripe"
+"Base44"
+ローテーション戦略
+
+同じキーワードで連続検索しない
+1日1巡したらキーワード変える
+「Posted yesterday」帯は競合多い、「Posted X minutes ago」を優先
+
+
+提案文の作り方
+構造テンプレート
+[案件特化Loom URL 1行目]
+
+[Loomで何を見せているか1-2文、案件タイトル引用]
+
+[案件への技術アプローチ箇条書き3-5項目、具体的に]
+
+[懸念点/注意点があれば1-2項目、押し付けず提示]
+
+I run oneshotcal.com — [案件に関連する技術1-2個] in production.
+
+[納期/工数の現実的な見積もり]
+
+One question: [スコープを絞る質問1つ]
+
+Yoshiyuki
+文体ルール
+
+AI臭排除: 「Quick technical note before pitching」「Most applicants will type these in」などの定型句避ける
+口語混じり: 「Honestly」「Going blind by day three」のような人間味
+整いすぎない: 段落のリズム崩す、思考の順序が見える書き方
+完全な箇条書きより、散文+短い箇条書き混在
+AI臭の最大の源は「綺麗すぎる箇条書き」
+
+値段交渉の表現
+
+❌ 「I don't think anyone serious will finish at that price」(主観的、攻撃的)
+✅ 「The Upwork market rate for this scope tends to land at $25-35」(客観的、第三者引用)
+主語を「市場」「現実」に向ける、「あなたの判断」を否定しない
+
+他者と差別化する書き方
+
+❌ 「AppSheet-only folks usually skip this part」(他者を貶める)
+✅ 「This is where projects move beyond AppSheet setup into actual systems integration」(自分の領域を定義する)
+自分のポジショニングを明確化する方向で書く
+
+
+ゴールデンタイム(京都時間基準)
+時間帯状況動き方16:00-19:00EU朝の案件投稿ピーク★最優先19:00-22:00EU業務中 + US東朝開始第2優先22:00-翌0:00US東海岸朝、UK夕方第3優先翌0:00-翌2:00US西海岸朝体力次第翌2:00-翌7:00US業務中、EU深夜寝る翌7:00-12:00全市場停止リスト枯渇時間12:00-16:00インド/アジア業務中質低い時間
+EU 16-19時 + US 7-10時(=日本22-翌1時)が二大ピーク。
+
+Connects 投資戦略
+月間 Connects 予算: 自動補充60 + 追加購入120 = 180 Connects
+1案件 = 16 Connects (Fixed小規模) or 8 Connects (Hourly小規模)
+月間応募目安: 10-15件
+
+応募の質的配分:
+- カテゴリA(完全マッチ + Verified): 60-70%
+- カテゴリB(Claude協働可 + Verified): 20-30%
+- Unverified ロト枠: 10%以下(月2-3件)
+追加購入ルール:
+
+Custom amount で 40 Connects ($6) ずつ補充
+まとめ買い意味なし(ボリュームディスカウントなし、1年期限)
+
+
+価格戦略
+Upwork時給目標
+
+プロフィール設定: $45/hr(変更不要)
+提案時の現実的レンジ: $25-35/hr
+値上げ交渉時の表現: 「Upwork market rate tends to land at $25-35」
+
+Fixed案件
+
+$50-100: スキップ(撒き餌)
+$100-300: ★獲得目的、即金案件として検討
+$300-1000: ど真ん中、積極応募
+$1000+: 慎重判断、スコープ確認必須
+
+クラウドワークス
+
+時間単価 3,000円〜(プロフィール設定済み)
+工数だけ提示、価格は相談ベース
+最低受注ライン: 想定工数の20%以下にならないこと
+
+
+今後の到達目標
+短期(1ヶ月)
+
+★5評価2-3件積み上げ → JSS 90%+表示
+案件特化Loom作成のフロー定着
+月1-2件成約
+
+中期(3ヶ月)
+
+月額継続案件 1件確保
+カテゴリBの実装範囲を広げる(Make.com / LINE API等)
+Upwork + クラウドワークス 月10-20万円
+
+長期(6ヶ月)
+
+oneshotcal.com 有料ユーザー獲得との両立
+Upwork JSS 95%+
+月25-40万円
+
+
+過去の応募データ(学習用)
+反応あった提案(Loom付き)
+案件クライアントLoom結果AppSheet Drawing Records?あり反応ありApps Script Inventory?あり反応ありForm 20 PDF (Apr 28)UnverifiedありUnverified側で停滞
+反応なし提案(Loomなし)
+案件クライアントLoom結果Invoice PDF (Germany 4.9★ $20K+)Verified優良なし反応なしAppSheet Mold ($5-6)Verified Rating 0なし反応なしHistorical PDF (Belgium)Verified Rating 0なし反応なし
+学び
+
+Loomの有無が反応の最大要因(技術力でも価格でもなく)
+Verified優良クライアントでもLoomなしは届かない
+Unverifiedはどれだけ良い提案でも採用されない確率高い
+クライアント特化Loom > ストック使い回し
+
+
+セッション切れ後の引き継ぎ
+次のAI(Claude)に渡す情報:
+僕は #RIORIO# / Yoshiyuki、京都在住、oneshotcal.com 個人運営
+音声通話不可、テキスト + Loomで進行
+Upwork時給目標 $25-35、クラウドワークス 3000円〜
+
+依頼するときの僕の癖:
+- 直球で本音を書く、柔らかく書きすぎない
+- 戦略議論を好む、表面的な作業より構造を考えたい
+- GPTと併用してダブルチェックすることがある
+- 「これいける?」と聞いたら、シンプルに「いける/いけない」で答えてほしい
+- 過度な持ち上げや励ましは不要、現状認識を冷静に共有してほしい
+
+困ってる時のサポート:
+- リスト見て即判定(GO/スキップ/微妙)
+- 提案文書く時はAI臭を排除した文体で
+- ストック使い回しじゃなく案件特化を前提に
+- 10分でデモ作る前提で考える
+
+これを保存。判断書 v2 完成。
+次のセッションでもこれ渡せば、僕(別のClaude)が即同じレベルで動ける状態にした。
+
+確認
+書き換えで反映した変更点:
+
+✅ 「Claude協働前提」で採用基準ゆるめた(カテゴリB拡張)
+✅ 「都度Loom作成」を最上位ルール化
+✅ ゴールデンタイム明文化
+✅ AI臭排除の文体ルール追加
+✅ 価格交渉の表現ルール(GPT指摘の「市場引用」採用)
+✅ 過去3日の応募データを学習材料化
+✅ Unverified の例外条件明文化
+✅ 引き継ぎセクション追加(次AI向け)
