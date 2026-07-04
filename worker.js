@@ -1123,7 +1123,10 @@ const GRID_MESSAGES = {
     badInput: 'ファイルまたは選択内容が不正です。',
     tooLarge: 'ファイルサイズが大きすぎます（上限10MB）。',
     undoNotFound: '取り消し対象が見つかりませんでした（取り消せるのは直近の登録のみです）。',
-    undoError: '取り消し中にエラーが発生しました。もう一度お試しください。'
+    undoError: '取り消し中にエラーが発生しました。もう一度お試しください。',
+    notSchedule: '予定として登録できる内容を見つけられませんでした。予定表・献立表・行事チラシなどが写った鮮明な画像またはPDFをお試しください。',
+    genericEmpty: '予定として読み取れる内容が見つかりませんでした。',
+    qColumns: '登録する列（クラス・担当など）を選んでください'
   },
   en: {
     notGrid: 'Could not recognize this as a grid-style monthly schedule. Please try a clear image or PDF showing the whole table.',
@@ -1132,7 +1135,10 @@ const GRID_MESSAGES = {
     badInput: 'Invalid file or selection.',
     tooLarge: 'File is too large (max 10MB).',
     undoNotFound: 'Nothing to undo (only the most recent registration can be undone).',
-    undoError: 'An error occurred while undoing. Please try again.'
+    undoError: 'An error occurred while undoing. Please try again.',
+    notSchedule: 'Could not find any schedule content to register. Please try a clear image or PDF of a schedule, menu plan, or event flyer.',
+    genericEmpty: 'No events could be read from this file.',
+    qColumns: 'Select the column(s) to register (class, person, etc.)'
   },
   de: {
     notGrid: 'Konnte dies nicht als Monatsplan im Rasterformat erkennen. Bitte versuchen Sie ein klares Bild oder PDF der gesamten Tabelle.',
@@ -1141,7 +1147,10 @@ const GRID_MESSAGES = {
     badInput: 'Ungültige Datei oder Auswahl.',
     tooLarge: 'Datei ist zu groß (max. 10MB).',
     undoNotFound: 'Nichts rückgängig zu machen (nur die letzte Registrierung kann rückgängig gemacht werden).',
-    undoError: 'Beim Rückgängigmachen ist ein Fehler aufgetreten. Bitte erneut versuchen.'
+    undoError: 'Beim Rückgängigmachen ist ein Fehler aufgetreten. Bitte erneut versuchen.',
+    notSchedule: 'Es wurden keine Termininhalte zum Registrieren gefunden. Bitte versuchen Sie ein klares Bild oder PDF eines Plans, Speiseplans oder Flyers.',
+    genericEmpty: 'Aus dieser Datei konnten keine Termine gelesen werden.',
+    qColumns: 'Wählen Sie die zu registrierenden Spalten (Klasse, Person usw.)'
   },
   fr: {
     notGrid: 'Impossible de reconnaître un planning mensuel en grille. Essayez une image ou un PDF net montrant tout le tableau.',
@@ -1150,7 +1159,10 @@ const GRID_MESSAGES = {
     badInput: 'Fichier ou sélection invalide.',
     tooLarge: 'Fichier trop volumineux (max 10MB).',
     undoNotFound: "Rien à annuler (seul l'enregistrement le plus récent peut être annulé).",
-    undoError: "Une erreur s'est produite lors de l'annulation. Veuillez réessayer."
+    undoError: "Une erreur s'est produite lors de l'annulation. Veuillez réessayer.",
+    notSchedule: "Aucun contenu de planning à enregistrer n'a été trouvé. Essayez une image ou un PDF net d'un planning, d'un menu ou d'un prospectus.",
+    genericEmpty: "Aucun événement n'a pu être lu dans ce fichier.",
+    qColumns: 'Sélectionnez les colonnes à enregistrer (classe, personne, etc.)'
   },
   es: {
     notGrid: 'No se pudo reconocer como un horario mensual en cuadrícula. Pruebe una imagen o PDF nítido de toda la tabla.',
@@ -1159,7 +1171,10 @@ const GRID_MESSAGES = {
     badInput: 'Archivo o selección no válidos.',
     tooLarge: 'Archivo demasiado grande (máx. 10MB).',
     undoNotFound: 'Nada que deshacer (solo se puede deshacer el registro más reciente).',
-    undoError: 'Se produjo un error al deshacer. Inténtelo de nuevo.'
+    undoError: 'Se produjo un error al deshacer. Inténtelo de nuevo.',
+    notSchedule: 'No se encontró contenido de agenda para registrar. Pruebe una imagen o PDF nítido de un horario, menú o folleto.',
+    genericEmpty: 'No se pudieron leer eventos de este archivo.',
+    qColumns: 'Seleccione las columnas a registrar (clase, persona, etc.)'
   }
 };
 
@@ -1394,17 +1409,57 @@ app.post('/grid/extract', async (req, res) => {
     // 次回以降の自動適用のため選択結果を保存
     await dbGrid.saveGridClassPrefs(subId, selectedClasses);
 
-    let langInstruction = '予定名(summary)は表に書かれている元の言語・表記のまま出力し、翻訳しないこと。';
-    if (targetLang === 'ja') langInstruction = '予定名(summary)は日本語に翻訳して出力すること。';
-    else if (targetLang === 'en') langInstruction = 'Translate each summary into English.';
-    else if (targetLang === 'de') langInstruction = 'Translate each summary into German.';
-    else if (targetLang === 'fr') langInstruction = 'Translate each summary into French.';
-    else if (targetLang === 'es') langInstruction = 'Translate each summary into Spanish.';
+    const filePart = await prepareGridPart(buffer, mimeType);
+    const result = await runGridExtraction(filePart, { selectedClasses, userTimeZone, targetLang });
+
+    if (!result.isGrid) {
+      await db.incrementErrorCount(subId, 10);
+      return res.json({ success: false, error: gridMsg(lang, 'notGrid') });
+    }
+    if (result.events.length === 0 && result.notices.length === 0) {
+      await db.incrementErrorCount(subId, 10);
+      return res.json({ success: false, error: gridMsg(lang, 'empty') });
+    }
+
+    res.json({
+      success: true,
+      year: result.year,
+      month: result.month,
+      selectedClasses: selectedClasses,
+      events: result.events,
+      notices: result.notices
+    });
+  } catch (e) {
+    console.error('GRID EXTRACT ERROR:', e);
+    const isSystemError = e.status === 429 || e.message?.includes('quota') || e.message?.includes('limit');
+    if (!isSystemError) {
+      await db.incrementErrorCount(subId, 10);
+    }
+    res.status(500).json({ error: gridMsg(lang, 'parseError') });
+  }
+});
+
+function gridLangInstruction(targetLang) {
+  let langInstruction = '予定名(summary)は表に書かれている元の言語・表記のまま出力し、翻訳しないこと。';
+  if (targetLang === 'ja') langInstruction = '予定名(summary)は日本語に翻訳して出力すること。';
+  else if (targetLang === 'en') langInstruction = 'Translate each summary into English.';
+  else if (targetLang === 'de') langInstruction = 'Translate each summary into German.';
+  else if (targetLang === 'fr') langInstruction = 'Translate each summary into French.';
+  else if (targetLang === 'es') langInstruction = 'Translate each summary into Spanish.';
+  return langInstruction;
+}
+
+// /grid/extract のハンドラー本体から切り出した3ラン多数決抽出（挙動は切り出し前と同一）。
+// 旧 /grid/extract と新 /bulk/extract の両方がこれを呼ぶ。
+// extraPrompt はユーザー回答（対象年月など）をプロンプト末尾に追記するためのもので、
+// 旧エンドポイントからは常に空文字（＝従来とバイト同一のプロンプト）。
+async function runGridExtraction(filePart, opts) {
+    const { selectedClasses, userTimeZone, targetLang, extraPrompt = '' } = opts;
+    const langInstruction = gridLangInstruction(targetLang);
 
     const now = new Date();
     const nowStr = now.toLocaleString('ja-JP', { timeZone: userTimeZone });
 
-    const filePart = await prepareGridPart(buffer, mimeType);
     const prompt = `添付は幼稚園・保育園・学校などの「月間予定表」（日付×クラス列のグリッド表）です。以下のルールに厳密に従い、対象クラス列の予定を抽出してJSONのみを出力してください。
 
 【対象クラス列】
@@ -1478,7 +1533,7 @@ C) notices の生成条件（厳守）:
 
 【出力形式（このJSONのみを出力）】
 {"isGrid": true, "year": 2026, "month": 7, "events": [{"summary": "予定名", "date": "YYYY-MM-DD", "weekday": "月〜日の一文字 または null", "endDate": "YYYY-MM-DD または null", "startTime": "HH:mm または null", "endTime": "HH:mm または null", "columns": ["列見出し名", ...], "allColumns": false, "confidence": "high または low", "note": "補足があれば文字列、なければ null"}], "notices": [{"startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "nearbyText": "文字列 または null"}]}
-グリッド表として解析できない場合は {"isGrid": false, "events": [], "notices": []} を返す。`;
+グリッド表として解析できない場合は {"isGrid": false, "events": [], "notices": []} を返す。` + extraPrompt;
 
     // コンセンサス方式: 同じ画像で2回並列に抽出し、両方が一致した予定のみ high、
     // 食い違い・片方のみの予定は「未検証(low)」としてユーザー確認に回す。
@@ -1493,10 +1548,7 @@ C) notices の生成条件（厳守）:
     ]);
     const validRuns = runs.filter(r => r && r.isGrid);
 
-    if (validRuns.length === 0) {
-      await db.incrementErrorCount(subId, 10);
-      return res.json({ success: false, error: gridMsg(lang, 'notGrid') });
-    }
+    if (validRuns.length === 0) return { isGrid: false };
     const parsed = validRuns[0];
 
     // 照合キーは空白・全角空白を除去して正規化（「休園」と「休 園」の表記ゆれで
@@ -1628,31 +1680,17 @@ C) notices の生成条件（厳守）:
       }))
       .slice(0, 20);
 
-    if (events.length === 0 && notices.length === 0) {
-      await db.incrementErrorCount(subId, 10);
-      return res.json({ success: false, error: gridMsg(lang, 'empty') });
-    }
-
     // 日付順 → クラス順で安定ソート
     events.sort((a, b) => (a.date + (a.startTime || '')).localeCompare(b.date + (b.startTime || '')) || a.className.localeCompare(b.className));
 
-    res.json({
-      success: true,
+    return {
+      isGrid: true,
       year: Number.isInteger(parsed.year) ? parsed.year : null,
       month: Number.isInteger(parsed.month) ? parsed.month : null,
-      selectedClasses: selectedClasses,
       events: events,
       notices: notices
-    });
-  } catch (e) {
-    console.error('GRID EXTRACT ERROR:', e);
-    const isSystemError = e.status === 429 || e.message?.includes('quota') || e.message?.includes('limit');
-    if (!isSystemError) {
-      await db.incrementErrorCount(subId, 10);
-    }
-    res.status(500).json({ error: gridMsg(lang, 'parseError') });
-  }
-});
+    };
+}
 
 // ── 3. ユーザー確認済みの予定を一括登録（回数1消費） ─────────
 app.post('/grid/register', async (req, res) => {
@@ -1863,6 +1901,355 @@ app.post('/grid/undo', async (req, res) => {
       return res.status(403).json({ error: 'Insufficient permission.' });
     }
     res.status(500).json({ error: gridMsg(lang, 'undoError') });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 一括登録（bulk）モード = グリッドモードの汎用化
+// Stage1+2統合の書類タイプ判定＋質問生成（/bulk/triage）と、
+// 非対称ルーティング付きの抽出（/bulk/extract）。
+// レビュー・登録・取り消しは既存の /grid/register・/grid/undo を無改修で流用。
+// 旧 /grid/columns・/grid/extract は、ブラウザにキャッシュされた旧フロントの
+// ために当面残す（次々回のデプロイで削除予定）。
+// ═══════════════════════════════════════════════════════════════
+
+const BULK_DOC_TYPES = ['grid_monthly', 'weekly_schedule', 'list_schedule', 'menu_monthly', 'single_flyer', 'shift_table', 'other'];
+const BULK_QUESTION_TYPES = ['column_select', 'region_select', 'date_confirm', 'target_select', 'free'];
+const BULK_LANG_NAMES = { ja: '日本語', en: 'English', de: 'Deutsch', fr: 'Français', es: 'Español' };
+
+// 非対称ルーティング: LLMの分類を確率として信用せず、グリッドの可能性が
+// 少しでも上位にあれば安全側（3ラン多数決の専用ハンドラー）に倒す。
+// 誤判定のコストはGemini呼び出し1回の無駄（内部フォールバック）に限定される。
+function bulkIsGridRoute(docTypes) {
+  return docTypes.slice(0, 2).includes('grid_monthly');
+}
+
+// 曜日検算（汎用版）: 日本語一文字に加えて英語3文字（Mon〜Sun）も照合。
+// それ以外の表記は検算スキップ（false = 不一致なし扱い）。
+function bulkWeekdayMismatch(weekday, date) {
+  if (typeof weekday !== 'string' || !weekday.trim()) return false;
+  const w = weekday.replace(/曜日?$/, '').trim();
+  const JP = ['日', '月', '火', '水', '木', '金', '土'];
+  const EN = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  let idx = JP.indexOf(w);
+  if (idx < 0) idx = EN.indexOf(w.slice(0, 3).toLowerCase());
+  if (idx < 0) return false;
+  return new Date(`${date}T00:00:00Z`).getUTCDay() !== idx;
+}
+
+// 質問への回答をプロンプト追記用の行に整形する
+function bulkAnswerLines(answers, { excludeColumns = false } = {}) {
+  const lines = [];
+  for (const a of answers) {
+    if (excludeColumns && a.type === 'column_select') continue;
+    if (!a.values.length) continue;
+    lines.push(`- ${a.prompt || a.type}: ${a.values.join(' / ')}`);
+  }
+  return lines;
+}
+
+// 汎用抽出（1ラン・temperature 0）。グリッド以外の予定表・献立表・チラシ・
+// シフト表向け。多数決の保険がない代わりに evidence（根拠の書き写し）を
+// 要求して捏造を抑止し、low はレビューUI（デフォルトOFF）が防波堤になる。
+async function runGenericExtraction(filePart, opts) {
+  const { userTimeZone, targetLang, docTypes = [], answerLines = [] } = opts;
+  const langInstruction = gridLangInstruction(targetLang);
+  const now = new Date();
+  const nowStr = now.toLocaleString('ja-JP', { timeZone: userTimeZone });
+  const docHint = docTypes.filter(d => d !== 'other').join(' / ') || '種類不明';
+
+  const answerSection = answerLines.length
+    ? `\n【ユーザーの回答（厳守）】\n${answerLines.join('\n')}\n- 対象の年月に関する回答がある場合、year・month・各dateは必ずその回答に従うこと。\n- 対象の列・人・系列に関する回答がある場合、その対象の予定だけを抽出すること。\n`
+    : '';
+
+  const prompt = `添付は「${docHint}」タイプと思われる予定情報（予定表・献立表・行事チラシ・シフト表など）です。以下のルールに厳密に従い、カレンダーに登録する予定を抽出してJSONのみを出力してください。
+${answerSection}
+【抽出ルール】
+- 各予定に必須のフィールド: summary（予定名）/ date（"YYYY-MM-DD"）/ endDate（複数日にわたる場合の最終日、なければ null）/ startTime・endTime（"HH:mm" 24時間表記、なければ null。"24:00" は使用禁止）/ target（その予定が属する列・人・系列名。なければ null）/ confidence（"high" または "low"）/ evidence（どの印字テキスト・記号から抽出したかの書き写し20字以内）/ weekday（その予定の行・欄に印字されている曜日の書き写し。月〜日の一文字または Mon〜Sun 形式。印字がなければ null。date から計算してはならない）
+- 捏造禁止: 書類に物理的に書かれていない予定名・日付を出力しない。読み取りに少しでも自信がなければ confidence を "low" にする。
+- ノイズ除外: 献立の材料・分量(g)・栄養価、事務的な脚注、発行元情報、相談窓口の案内、広告はイベントにしない。
+- 献立表（menu_monthly）の場合: 1日につき1件の終日予定にまとめ、summary は主菜を中心とした短い献立名にする。時刻は付けない。
+- 1つのセル・1行に複数の予定が並んでいる場合は、それぞれ別の予定として分離する。
+- 年月の決定: 書類のタイトル・欄外から読み取る。年が明記されていない場合は、現在日時（${nowStr}）を基準に、その月が当月以降で最も近くなる年と解釈する。その月に存在しない日付を絶対に出力しない。
+- ${langInstruction}
+- 取得したユーザーデータをAI/MLモデルのトレーニングに利用することはありません。
+
+【出力形式（このJSONのみを出力）】
+{"hasEvents": true または false, "year": 数値 または null, "month": 数値 または null, "events": [{"summary": "予定名", "date": "YYYY-MM-DD", "endDate": "YYYY-MM-DD または null", "startTime": "HH:mm または null", "endTime": "HH:mm または null", "target": "文字列 または null", "weekday": "文字列 または null", "confidence": "high または low", "evidence": "根拠の書き写し"}]}
+予定が1件も読み取れない場合は {"hasEvents": false, "year": null, "month": null, "events": []} を返す。`;
+
+  const parsed = await gridGenerateJson(filePart, prompt, 0);
+  const rawEvents = Array.isArray(parsed?.events) ? parsed.events : [];
+
+  const events = [];
+  for (const ev of rawEvents) {
+    if (!ev || typeof ev.summary !== 'string' || !ev.summary.trim()) continue;
+    if (typeof ev.date !== 'string' || !GRID_DATE_RE.test(ev.date)) continue;
+
+    // 曜日の機械的検算: 印字曜日と date の実曜日が食い違う場合は行ズレの
+    // 可能性が高いので「未検証」に落とす（グリッド側と同じ設計）
+    let confidence = ev.confidence === 'high' ? 'high' : 'low';
+    if (bulkWeekdayMismatch(ev.weekday, ev.date)) confidence = 'low';
+
+    events.push({
+      summary: ev.summary.trim().slice(0, 200),
+      date: ev.date,
+      endDate: (typeof ev.endDate === 'string' && GRID_DATE_RE.test(ev.endDate) && ev.endDate > ev.date) ? ev.endDate : null,
+      startTime: (typeof ev.startTime === 'string' && GRID_TIME_RE.test(ev.startTime)) ? ev.startTime : null,
+      endTime: (typeof ev.endTime === 'string' && GRID_TIME_RE.test(ev.endTime)) ? ev.endTime : null,
+      className: (typeof ev.target === 'string' && ev.target.trim()) ? ev.target.trim().slice(0, 30) : null,
+      isCommon: false,
+      confidence: confidence,
+      note: null
+    });
+    if (events.length >= GRID_MAX_EVENTS) break;
+  }
+
+  // (予定名[空白除去], 日付, 対象) が同一のものは1件にまとめる（highを優先）
+  {
+    const byKey = new Map();
+    for (const e of events) {
+      const k = `${e.summary.replace(/[\s　]+/g, '')}|${e.date}|${e.className || ''}`;
+      const cur = byKey.get(k);
+      if (!cur || (cur.confidence !== 'high' && e.confidence === 'high')) byKey.set(k, e);
+    }
+    events.length = 0;
+    events.push(...byKey.values());
+  }
+
+  events.sort((a, b) => (a.date + (a.startTime || '')).localeCompare(b.date + (b.startTime || '')) || (a.className || '').localeCompare(b.className || ''));
+
+  return {
+    year: Number.isInteger(parsed?.year) ? parsed.year : null,
+    month: Number.isInteger(parsed?.month) ? parsed.month : null,
+    events: events,
+    notices: []
+  };
+}
+
+// ── 一括登録 1. 書類タイプ判定＋メタデータ＋質問生成（Stage1+2統合） ──
+// ガードは /grid/columns と同一（セッション必須・BANチェックのみ・回数消費なし）
+app.post('/bulk/triage', async (req, res) => {
+  const subId = req.session?.subId;
+  if (!subId) return res.status(401).json({ error: 'Unauthorized' });
+  const lang = gridUserLang(req);
+
+  try {
+    const status = await db.getUserStatus(subId);
+    if (status.isBanned) return res.status(403).json({ error: 'Account suspended due to excessive errors.' });
+  } catch (e) {
+    console.error('BULK: db.getUserStatus failed:', e.message);
+    return res.status(500).json({ error: 'Database service error. Please try again later.' });
+  }
+
+  try {
+    const { buffer, mimeType, truncated } = await collectGridUpload(req);
+    if (truncated) return res.json({ success: false, error: gridMsg(lang, 'tooLarge') });
+    if (!buffer || buffer.length === 0 || !(mimeType.startsWith('image/') || mimeType === 'application/pdf')) {
+      return res.json({ success: false, error: gridMsg(lang, 'badInput') });
+    }
+
+    const filePart = await prepareGridPart(buffer, mimeType);
+    const nowStr = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+    const langName = BULK_LANG_NAMES[lang] || 'English';
+    const prompt = `この添付ファイルは、カレンダーに登録したい何らかの予定情報（月間予定表・週間予定表・献立表・行事チラシ・シフト表など）の可能性があります。内容を判定し、以下のJSONのみを出力してください:
+
+{"docTypes": ["..."], "features": {"hasDateAxis": true/false, "hasEntityColumns": true/false, "isSingleItem": true/false, "multiDocument": true/false}, "year": 数値 または null, "month": 数値 または null, "columns": ["..."], "questions": [{"id": "q1", "type": "...", "prompt": "...", "options": ["..."], "multi": true/false}]}
+
+ルール:
+1. docTypes: 次の語彙から該当しうるものを可能性の高い順に最大3つ列挙する:
+   grid_monthly（日付の行×クラス・学年などの列で構成されたグリッド月間予定表）/ weekly_schedule（週間予定表）/ list_schedule（日付リスト形式の予定一覧）/ menu_monthly（給食などの月間献立表）/ single_flyer（1つの行事の案内・チラシ）/ shift_table（勤務シフト表）/ other（予定情報ではない）
+2. features: hasDateAxis（日付の軸があるか）/ hasEntityColumns（クラス・人などの列があるか）/ isSingleItem（単一の予定か）/ multiDocument（独立した複数の書類・掲示物が写っているか）の真偽値。
+3. year / month: タイトル・欄外から読み取れれば西暦の数値、読み取れなければ null。
+4. columns: 日付・曜日以外の列見出し（grid_monthly / shift_table のときのみ。表に書かれている表記のまま左から順に。読み取れない列は列挙しない。それ以外の書類タイプでは []）。
+5. questions: ユーザーに確認すべき曖昧点。以下を厳守:
+   - type は column_select / region_select / date_confirm / target_select / free のみ。最大3問。free は最大1問。
+   - column_select: 対象列（クラス・人・組）の選択。columns を検出した場合は必ず1問生成し、options は columns と同一にする。multi は true。
+   - region_select: 独立した複数の書類・掲示物が写っている場合のみ「どれを登録するか」を1問生成する。multi は false。
+   - date_confirm: 年・月のどちらか（または両方）が書類から読み取れない場合のみ生成する。「2026年7月」のような年月一体の候補を、現在日時（${nowStr}）を基準に可能性の高い順に2〜3個 options に列挙する。multi は false。
+   - target_select: 献立のA/B系列、午前の部/午後の部など、同種の系列が並存し選択が必要な場合。
+   - free: 上記に当てはまらない曖昧点で、かつ選択肢を列挙できる場合のみ。自由記入の質問は禁止。multi は false。
+   - すべての質問は options（選択肢）を必ず列挙する。選択肢を列挙できない曖昧さは質問にしない。
+   - 書類から読み取れる・推測できることを質問してはならない（例: 年月が印字されているのに date_confirm を出す）。
+   - 書類に手がかりが全くない曖昧さ（凡例なし・文字潰れ）は質問しても解決しないので質問にしない。
+   - 質問文(prompt)と選択肢のラベルは${langName}で書く。ただし書類に印字された固有名（列名・クラス名・系列名等）は原文の表記のまま。
+6. カレンダー予定として意味を成さない情報（献立の材料・分量・栄養価、事務的な脚注、発行元情報）は columns にも questions にも含めない。`;
+
+    const parsed = await gridGenerateJson(filePart, prompt);
+
+    const docTypes = (Array.isArray(parsed?.docTypes) ? parsed.docTypes : [])
+      .filter(d => BULK_DOC_TYPES.includes(d))
+      .slice(0, 3);
+
+    if (docTypes.length === 0 || docTypes[0] === 'other') {
+      await db.incrementErrorCount(subId, 10);
+      return res.json({ success: false, error: gridMsg(lang, 'notSchedule') });
+    }
+
+    const columns = (Array.isArray(parsed.columns) ? parsed.columns : [])
+      .filter(c => typeof c === 'string' && c.trim())
+      .map(c => c.trim())
+      .slice(0, 20);
+
+    // 質問のサニタイズ: ホワイトリスト外の型・選択肢なしの質問は捨てる
+    let freeSeen = false;
+    const questions = (Array.isArray(parsed.questions) ? parsed.questions : [])
+      .filter(q => q && BULK_QUESTION_TYPES.includes(q.type) && typeof q.prompt === 'string' && q.prompt.trim())
+      .map(q => ({
+        id: typeof q.id === 'string' ? q.id.slice(0, 20) : '',
+        type: q.type,
+        prompt: q.prompt.trim().slice(0, 200),
+        options: (Array.isArray(q.options) ? q.options : [])
+          .filter(o => typeof o === 'string' && o.trim())
+          .map(o => o.trim().slice(0, 80))
+          .slice(0, q.type === 'column_select' ? 20 : 12),
+        multi: q.type === 'column_select' ? true : q.multi === true
+      }))
+      .filter(q => {
+        if (q.options.length === 0) return false;
+        if (q.type === 'free') {
+          if (freeSeen) return false;
+          freeSeen = true;
+        }
+        return true;
+      })
+      .slice(0, 3);
+
+    // column_select は列検出結果と必ず整合させる（保存済み選択の自動適用のため）
+    const colQ = questions.find(q => q.type === 'column_select');
+    if (colQ && columns.length > 0) colQ.options = columns;
+    if (!colQ && columns.length > 0 && bulkIsGridRoute(docTypes)) {
+      questions.unshift({ id: 'columns', type: 'column_select', prompt: gridMsg(lang, 'qColumns'), options: columns, multi: true });
+    }
+
+    // 保存済みのクラス選択（列名が一致するものだけ自動適用の候補として返す）
+    const saved = await dbGrid.getGridClassPrefs(subId);
+    const savedClasses = saved ? saved.filter(s => columns.includes(s)) : [];
+
+    const f = parsed.features || {};
+    res.json({
+      success: true,
+      docTypes: docTypes,
+      features: {
+        hasDateAxis: f.hasDateAxis === true,
+        hasEntityColumns: f.hasEntityColumns === true,
+        isSingleItem: f.isSingleItem === true,
+        multiDocument: f.multiDocument === true
+      },
+      year: Number.isInteger(parsed.year) ? parsed.year : null,
+      month: Number.isInteger(parsed.month) ? parsed.month : null,
+      columns: columns,
+      questions: questions.slice(0, 3),
+      savedClasses: savedClasses,
+      likelyMode: bulkIsGridRoute(docTypes) ? 'grid' : 'generic'
+    });
+  } catch (e) {
+    console.error('BULK TRIAGE ERROR:', e);
+    const isSystemError = e.status === 429 || e.message?.includes('quota') || e.message?.includes('limit');
+    if (!isSystemError) {
+      await db.incrementErrorCount(subId, 10);
+    }
+    res.status(500).json({ error: gridMsg(lang, 'parseError') });
+  }
+});
+
+// ── 一括登録 2. 構造化抽出（Stage3・非対称ルーティング。登録はしない） ──
+// 回数消費なし（消費は従来どおり /grid/register）。ガードは /grid/extract と同一。
+app.post('/bulk/extract', async (req, res) => {
+  const subId = req.session?.subId;
+  if (!subId) return res.status(401).json({ error: 'Unauthorized' });
+  const lang = gridUserLang(req);
+
+  let limitState;
+  try {
+    limitState = await gridCheckLimit(subId);
+  } catch (e) {
+    console.error('BULK: pre-check error:', e.message);
+    return res.status(500).json({ error: 'Subscription service error. Please try again later.' });
+  }
+  if (limitState.banned) return res.status(403).json({ error: 'Account suspended due to excessive errors.' });
+  if (limitState.limitReached) return res.json({ limitReached: true, premiumLimit: limitState.premiumLimit || false, nextResetDate: limitState.nextResetDate || '', redirectUrl: limitState.stripeUrl || '' });
+
+  try {
+    const { buffer, mimeType, fields, truncated } = await collectGridUpload(req);
+    if (truncated) return res.json({ success: false, error: gridMsg(lang, 'tooLarge') });
+    if (!buffer || buffer.length === 0 || !(mimeType.startsWith('image/') || mimeType === 'application/pdf')) {
+      return res.json({ success: false, error: gridMsg(lang, 'badInput') });
+    }
+
+    let docTypes = [];
+    try { docTypes = JSON.parse(fields.docTypes || '[]'); } catch (_) { /* fallthrough */ }
+    docTypes = (Array.isArray(docTypes) ? docTypes : []).filter(d => BULK_DOC_TYPES.includes(d)).slice(0, 3);
+
+    let answers = [];
+    try { answers = JSON.parse(fields.answers || '[]'); } catch (_) { /* fallthrough */ }
+    answers = (Array.isArray(answers) ? answers : [])
+      .filter(a => a && BULK_QUESTION_TYPES.includes(a.type))
+      .map(a => ({
+        type: a.type,
+        prompt: typeof a.prompt === 'string' ? a.prompt.trim().slice(0, 200) : '',
+        values: (Array.isArray(a.values) ? a.values : [])
+          .filter(v => typeof v === 'string' && v.trim())
+          .map(v => v.trim().slice(0, 80))
+          .slice(0, 20)
+      }))
+      .slice(0, 5);
+
+    const selectedClasses = (answers.find(a => a.type === 'column_select') || { values: [] }).values.slice(0, 20);
+    const userTimeZone = fields.timeZone || 'Asia/Tokyo';
+    const targetLang = fields.targetLang || 'auto';
+    const filePart = await prepareGridPart(buffer, mimeType);
+
+    // グリッド抽出には対象列の選択が必須。gridが上位でも列回答がない場合
+    // （列見出しを検出できなかった書類など）は最初から汎用ハンドラーに回す。
+    let mode = (bulkIsGridRoute(docTypes) && selectedClasses.length > 0) ? 'grid' : 'generic';
+    let result;
+
+    if (mode === 'grid') {
+      // 次回以降の自動適用のため選択結果を保存（旧 /grid/extract と同じ）
+      await dbGrid.saveGridClassPrefs(subId, selectedClasses);
+
+      const gridLines = bulkAnswerLines(answers, { excludeColumns: true });
+      const extraPrompt = gridLines.length
+        ? `\n【ユーザーの回答（厳守）】\n${gridLines.join('\n')}\n特に対象の年月に関する回答がある場合、year・month・各dateは必ずその回答に従うこと。`
+        : '';
+      result = await runGridExtraction(filePart, { selectedClasses, userTimeZone, targetLang, extraPrompt });
+
+      if (!result.isGrid) {
+        // 非対称ルーティングの内部フォールバック: グリッドとして解析できなければ
+        // 汎用ハンドラーへ（画像は手元にあるので再アップロード不要）
+        console.log('BULK EXTRACT: grid route returned isGrid:false, falling back to generic');
+        mode = 'generic';
+        result = await runGenericExtraction(filePart, { userTimeZone, targetLang, docTypes, answerLines: bulkAnswerLines(answers) });
+      }
+    } else {
+      result = await runGenericExtraction(filePart, { userTimeZone, targetLang, docTypes, answerLines: bulkAnswerLines(answers) });
+    }
+
+    if (result.events.length === 0 && (result.notices || []).length === 0) {
+      await db.incrementErrorCount(subId, 10);
+      return res.json({ success: false, error: gridMsg(lang, mode === 'grid' ? 'empty' : 'genericEmpty') });
+    }
+
+    // デバッグ用に件数のみログ（予定内容はプライバシーポリシー整合のため記録しない）
+    console.log(`BULK EXTRACT: mode=${mode} docTypes=${docTypes.join(',')} events=${result.events.length} low=${result.events.filter(ev => ev.confidence !== 'high').length} notices=${(result.notices || []).length}`);
+
+    res.json({
+      success: true,
+      mode: mode,
+      year: result.year,
+      month: result.month,
+      selectedClasses: mode === 'grid' ? selectedClasses : [],
+      events: result.events,
+      notices: result.notices || []
+    });
+  } catch (e) {
+    console.error('BULK EXTRACT ERROR:', e);
+    const isSystemError = e.status === 429 || e.message?.includes('quota') || e.message?.includes('limit');
+    if (!isSystemError) {
+      await db.incrementErrorCount(subId, 10);
+    }
+    res.status(500).json({ error: gridMsg(lang, 'parseError') });
   }
 });
 

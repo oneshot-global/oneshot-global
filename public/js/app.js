@@ -147,14 +147,16 @@
             modal_ok: "規約に同意して次へ",
             premium_limit_msg: function(d) { return `今月の利用上限（30回）に達しました。${d ? '次回リセット: ' + d : '翌月に自動で回復します'}`; },
             grid: {
-                modeLink: "📅 月間予定表モード（β）",
+                modeLink: "📥 一括登録モード（β）",
                 backLink: "← 通常モード（1画像1予定）に戻る",
-                fileBtn: "🗓️ 月間予定表を選択（画像・PDF）",
-                hint: "幼稚園・保育園などの「日付×クラス」形式の月間予定表を一括登録できます",
+                fileBtn: "🗓️ 予定表・チラシを選択（画像・PDF）",
+                hint: "月間予定表・献立表・行事チラシなどの画像/PDFから予定を一括登録できます",
                 detecting: "クラス列を検出中...",
                 classTitle: "登録するクラスを選んでください（複数選択可）",
                 savedApplied: "前回選択したクラスを自動適用しました",
                 changeClass: "クラス選択を変更する",
+                readyTitle: "内容を確認しました。そのまま抽出できます",
+                genericExtracting: "予定を読み取っています...（1分ほどかかる場合があります）",
                 extractBtn: "予定を抽出する",
                 extracting: "予定を抽出中...（最大1分ほどかかります）",
                 reviewTitle: "抽出結果を確認してください",
@@ -171,7 +173,7 @@
                 undoConfirm: "直前に一括登録した予定をすべてカレンダーから削除します。よろしいですか？（消費した利用回数は戻りません）",
                 undoing: "登録を取り消し中...",
                 undoneMsg: "件の予定を取り消しました",
-                step1: "表の列を確認しています",
+                step1: "書類の内容を確認しています",
                 step1Done: function(n) { return `${n}列を検出`; },
                 step2: "予定を読み取っています",
                 step2Sub: "見落としを防ぐため3回照合中",
@@ -261,14 +263,16 @@
             modal_ok: "Agree and Proceed",
             premium_limit_msg: function(d) { return `You've reached this month's limit (30 scans).${d ? ' Next reset: ' + d : ''}`; },
             grid: {
-                modeLink: "📅 Monthly Grid Mode (β)",
+                modeLink: "📥 Bulk Import Mode (β)",
                 backLink: "← Back to standard mode (one event per image)",
-                fileBtn: "🗓️ Select monthly schedule (image / PDF)",
-                hint: "Bulk-register grid-style monthly schedules (date × class columns), e.g. from kindergartens",
+                fileBtn: "🗓️ Select a schedule or flyer (image / PDF)",
+                hint: "Bulk-register events from monthly schedules, menu plans, event flyers and more (image / PDF)",
                 detecting: "Detecting class columns...",
                 classTitle: "Select the class column(s) to register (multiple allowed)",
                 savedApplied: "Your previous class selection was applied automatically",
                 changeClass: "Change class selection",
+                readyTitle: "Looks good — you can start extracting",
+                genericExtracting: "Reading events... (may take up to a minute)",
                 extractBtn: "Extract events",
                 extracting: "Extracting events... (may take up to a minute)",
                 reviewTitle: "Review the extracted events",
@@ -285,7 +289,7 @@
                 undoConfirm: "Delete all events you just registered from your calendar? (Used scans will not be refunded)",
                 undoing: "Undoing registration...",
                 undoneMsg: " events removed from calendar",
-                step1: "Checking table columns",
+                step1: "Checking the document",
                 step1Done: function(n) { return `${n} columns detected`; },
                 step2: "Reading events",
                 step2Sub: "Cross-checking with 3 passes to avoid misses",
@@ -371,14 +375,16 @@
             modal_ok: "Zustimmen und weiter",
             premium_limit_msg: function(d) { return `Monatslimit (30 Scans) erreicht.${d ? ' Nächster Reset: ' + d : ''}`; },
             grid: {
-                modeLink: "📅 Monatsplan-Modus (β)",
+                modeLink: "📥 Sammelimport-Modus (β)",
                 backLink: "← Zurück zum Standardmodus (ein Termin pro Bild)",
-                fileBtn: "🗓️ Monatsplan auswählen (Bild / PDF)",
-                hint: "Monatspläne im Rasterformat (Datum × Klassenspalten), z. B. aus Kindergärten, gesammelt registrieren",
+                fileBtn: "🗓️ Plan oder Flyer auswählen (Bild / PDF)",
+                hint: "Termine aus Monatsplänen, Speiseplänen, Flyern u. a. gesammelt registrieren (Bild / PDF)",
                 detecting: "Klassenspalten werden erkannt...",
                 classTitle: "Klassenspalte(n) auswählen (Mehrfachauswahl möglich)",
                 savedApplied: "Ihre letzte Klassenauswahl wurde automatisch übernommen",
                 changeClass: "Klassenauswahl ändern",
+                readyTitle: "Alles klar – Sie können die Extraktion starten",
+                genericExtracting: "Termine werden gelesen... (bis zu einer Minute)",
                 extractBtn: "Termine extrahieren",
                 extracting: "Termine werden extrahiert... (bis zu einer Minute)",
                 reviewTitle: "Extrahierte Termine prüfen",
@@ -395,7 +401,7 @@
                 undoConfirm: "Alle soeben eingetragenen Termine aus dem Kalender löschen? (Verbrauchte Scans werden nicht erstattet)",
                 undoing: "Wird rückgängig gemacht...",
                 undoneMsg: " Termine aus dem Kalender entfernt",
-                step1: "Tabellenspalten werden geprüft",
+                step1: "Dokument wird geprüft",
                 step1Done: function(n) { return `${n} Spalten erkannt`; },
                 step2: "Termine werden gelesen",
                 step2Sub: "3-fache Prüfung, um nichts zu übersehen",
@@ -473,14 +479,16 @@
             modal_ok: "Accepter et continuer",
             premium_limit_msg: function(d) { return `Limite mensuelle atteinte (30 scans).${d ? ' Prochain reset : ' + d : ''}`; },
             grid: {
-                modeLink: "📅 Mode planning mensuel (β)",
+                modeLink: "📥 Mode import groupé (β)",
                 backLink: "← Retour au mode standard (un événement par image)",
-                fileBtn: "🗓️ Choisir le planning mensuel (image / PDF)",
-                hint: "Enregistrez en masse les plannings mensuels en grille (date × colonnes de classe), ex. écoles maternelles",
+                fileBtn: "🗓️ Choisir un planning ou prospectus (image / PDF)",
+                hint: "Enregistrez en une fois les événements de plannings mensuels, menus, prospectus, etc. (image / PDF)",
                 detecting: "Détection des colonnes de classe...",
                 classTitle: "Sélectionnez la ou les colonnes de classe (choix multiple)",
                 savedApplied: "Votre sélection précédente a été appliquée automatiquement",
                 changeClass: "Modifier la sélection de classes",
+                readyTitle: "C'est bon — vous pouvez lancer l'extraction",
+                genericExtracting: "Lecture des événements... (jusqu'à une minute)",
                 extractBtn: "Extraire les événements",
                 extracting: "Extraction en cours... (jusqu'à une minute)",
                 reviewTitle: "Vérifiez les événements extraits",
@@ -497,7 +505,7 @@
                 undoConfirm: "Supprimer de l'agenda tous les événements que vous venez d'ajouter ? (Les scans utilisés ne seront pas remboursés)",
                 undoing: "Annulation en cours...",
                 undoneMsg: " événements supprimés de l'agenda",
-                step1: "Vérification des colonnes du tableau",
+                step1: "Vérification du document",
                 step1Done: function(n) { return `${n} colonnes détectées`; },
                 step2: "Lecture des événements",
                 step2Sub: "3 passes croisées pour ne rien manquer",
@@ -575,14 +583,16 @@
             modal_ok: "Aceptar y continuar",
             premium_limit_msg: function(d) { return `Límite mensual alcanzado (30 escaneos).${d ? ' Próximo reinicio: ' + d : ''}`; },
             grid: {
-                modeLink: "📅 Modo horario mensual (β)",
+                modeLink: "📥 Modo de importación masiva (β)",
                 backLink: "← Volver al modo estándar (un evento por imagen)",
-                fileBtn: "🗓️ Elegir horario mensual (imagen / PDF)",
-                hint: "Registre en bloque horarios mensuales en cuadrícula (fecha × columnas de clase), p. ej. de guarderías",
+                fileBtn: "🗓️ Elegir horario o folleto (imagen / PDF)",
+                hint: "Registre de una vez eventos de horarios mensuales, menús, folletos, etc. (imagen / PDF)",
                 detecting: "Detectando columnas de clase...",
                 classTitle: "Seleccione la(s) columna(s) de clase (selección múltiple)",
                 savedApplied: "Se aplicó automáticamente su selección anterior",
                 changeClass: "Cambiar selección de clases",
+                readyTitle: "Listo: puede iniciar la extracción",
+                genericExtracting: "Leyendo eventos... (hasta un minuto)",
                 extractBtn: "Extraer eventos",
                 extracting: "Extrayendo eventos... (hasta un minuto)",
                 reviewTitle: "Revise los eventos extraídos",
@@ -599,7 +609,7 @@
                 undoConfirm: "¿Eliminar del calendario todos los eventos que acaba de añadir? (Los escaneos usados no se reembolsan)",
                 undoing: "Deshaciendo...",
                 undoneMsg: " eventos eliminados del calendario",
-                step1: "Comprobando las columnas de la tabla",
+                step1: "Comprobando el documento",
                 step1Done: function(n) { return `${n} columnas detectadas`; },
                 step2: "Leyendo los eventos",
                 step2Sub: "3 pasadas cruzadas para no omitir nada",
@@ -1134,10 +1144,15 @@
         let gridBlob = null;        // 送信ファイル（画像はリサイズ済みJPEG、PDFは原本）
         let gridIsPdf = false;
         let gridColumns = [];       // 検出された列見出し
-        let gridSelected = [];      // 選択中のクラス列
+        let gridSelected = [];      // 選択中のクラス列（column_select の回答）
         let gridAutoApplied = false;
         let gridEvents = [];        // 抽出結果
         let gridLastBatchId = null; // 直近の一括登録の取り消し用batchId
+        let bulkDocTypes = [];      // /bulk/triage の書類タイプ判定（可能性の高い順）
+        let bulkQuestions = [];     // /bulk/triage が生成した確認質問（chip選択式）
+        let bulkAnswers = [];       // 質問index → 選択された選択肢の配列
+        let bulkLikelyMode = 'grid';// 進捗UIの切り替え用: 'grid'（4段階） | 'generic'（簡略）
+        let bulkMode = 'grid';      // 抽出結果のモード（レビュー表示の分岐用）
 
         // 取り消しボタンは動的生成（HTML6ファイルを変更しないため）
         const gridUndoBtn = document.createElement('button');
@@ -1258,6 +1273,12 @@
             gridSelected = [];
             gridAutoApplied = false;
             gridEvents = [];
+            bulkDocTypes = [];
+            bulkQuestions = [];
+            bulkAnswers = [];
+            bulkLikelyMode = 'grid';
+            bulkMode = 'grid';
+            gridClassTitle.style.display = '';
             gridClassStep.style.display = 'none';
             gridReviewStep.style.display = 'none';
             gridNotices.innerHTML = '';
@@ -1397,31 +1418,44 @@
             } else {
                 gridBlob = await gridResizeImage(file);
             }
-            await gridDetectColumns();
+            await bulkTriage();
         };
 
         function gridFileName() { return gridIsPdf ? 'schedule.pdf' : 'schedule.jpg'; }
 
-        // STEP 1: クラス列見出しの検出（進捗ステップ1に連動）
-        async function gridDetectColumns() {
+        // STEP 1: 書類タイプ判定＋確認質問の取得（進捗ステップ1に連動）
+        async function bulkTriage() {
             stepsShow();
             stepSet(0, 'active');
             gridSetBusy('', false);
             try {
                 const fd = new FormData();
                 fd.append('file', gridBlob, gridFileName());
-                const res = await gridFetch(`/grid/columns?cache-bust=${Date.now()}`, { method: 'POST', body: fd }, 60000);
+                const res = await gridFetch(`/bulk/triage?cache-bust=${Date.now()}`, { method: 'POST', body: fd }, 60000);
                 const data = await res.json();
                 if (gridHandleAuthError(res, data)) { stepsReset(); return; }
                 if (!data.success) { stepsReset(); gridShowError(data.error); return; }
 
+                bulkDocTypes = data.docTypes || [];
+                bulkQuestions = (data.questions || []).filter(q => q && q.prompt && Array.isArray(q.options) && q.options.length > 0);
+                bulkLikelyMode = data.likelyMode === 'generic' ? 'generic' : 'grid';
                 gridColumns = data.columns || [];
+                bulkAnswers = bulkQuestions.map(() => []);
+
                 // 保存済みの選択が現在の表の列名と一致すれば自動適用（再選択の導線あり）
                 gridSelected = (data.savedClasses && data.savedClasses.length > 0) ? data.savedClasses.slice() : [];
                 gridAutoApplied = gridSelected.length > 0;
-                stepSet(0, 'done', g.step1Done(gridColumns.length));
+                const colIdx = bulkQuestions.findIndex(q => q.type === 'column_select');
+                if (colIdx >= 0 && gridAutoApplied) bulkAnswers[colIdx] = gridSelected.slice();
+                // date_confirm は最有力候補（先頭）を既定選択にして、年月の推測を
+                // silent にせずユーザーの目に見える形にする（変更はワンタップ）
+                bulkQuestions.forEach((q, i) => {
+                    if (q.type === 'date_confirm' && bulkAnswers[i].length === 0) bulkAnswers[i] = [q.options[0]];
+                });
+
+                stepSet(0, 'done', gridColumns.length > 0 ? g.step1Done(gridColumns.length) : '');
                 status.innerText = '';
-                renderClassStep();
+                renderQuestionsStep();
             } catch (err) {
                 stepsReset();
                 gridShowError(t.error_generic);
@@ -1430,79 +1464,131 @@
             }
         }
 
-        function renderClassStep() {
+        // STEP 1.5: 確認質問（chip選択式）。質問ゼロなら見出しのみ表示して即抽出へ。
+        // column_select は従来のクラス選択と同じ挙動（保存済み選択の自動適用＋変更導線）。
+        function renderQuestionsStep() {
             gridReviewStep.style.display = 'none';
             gridClassStep.style.display = 'block';
             gridClassList.innerHTML = '';
+            gridChangeClassLink.style.display = 'none';
+            gridClassTitle.style.display = '';
 
-            if (gridAutoApplied) {
+            if (bulkQuestions.length === 0) {
+                gridClassTitle.innerText = g.readyTitle;
+                return;
+            }
+
+            const colIdx = bulkQuestions.findIndex(q => q.type === 'column_select');
+            const colAuto = gridAutoApplied && colIdx >= 0;
+            if (colAuto) {
                 gridClassTitle.innerText = g.savedApplied;
                 gridChangeClassLink.style.display = 'inline';
-                gridSelected.forEach(c => {
-                    const chip = document.createElement('div');
-                    chip.className = 'grid-class-item selected readonly';
-                    chip.textContent = c;
-                    gridClassList.appendChild(chip);
-                });
             } else {
-                gridClassTitle.innerText = g.classTitle;
-                gridChangeClassLink.style.display = 'none';
-                gridColumns.forEach(c => {
+                // 各質問が自前の見出しを持つのでタイトル行は畳む
+                gridClassTitle.innerText = '';
+                gridClassTitle.style.display = 'none';
+            }
+
+            bulkQuestions.forEach((q, qi) => {
+                const isCol = q.type === 'column_select';
+
+                if (!(isCol && colAuto)) {
+                    const head = document.createElement('div');
+                    head.style.cssText = 'width:100%;font-size:13px;color:#334155;font-weight:bold;margin:10px 0 2px;text-align:left;';
+                    head.textContent = q.prompt || (isCol ? g.classTitle : '');
+                    gridClassList.appendChild(head);
+                }
+
+                if (isCol && colAuto) {
+                    // 自動適用: 前回の選択を読み取り専用チップで表示（従来どおり）
+                    gridSelected.forEach(c => {
+                        const chip = document.createElement('div');
+                        chip.className = 'grid-class-item selected readonly';
+                        chip.textContent = c;
+                        gridClassList.appendChild(chip);
+                    });
+                    return;
+                }
+
+                q.options.forEach(opt => {
                     const chip = document.createElement('div');
-                    chip.className = 'grid-class-item' + (gridSelected.includes(c) ? ' selected' : '');
-                    chip.textContent = c;
+                    chip.className = 'grid-class-item' + (bulkAnswers[qi].includes(opt) ? ' selected' : '');
+                    chip.dataset.q = String(qi);
+                    chip.textContent = opt;
                     chip.onclick = () => {
-                        const i = gridSelected.indexOf(c);
-                        if (i >= 0) { gridSelected.splice(i, 1); } else { gridSelected.push(c); }
-                        chip.classList.toggle('selected');
+                        const sel = bulkAnswers[qi];
+                        const i = sel.indexOf(opt);
+                        if (i >= 0) {
+                            sel.splice(i, 1);
+                            chip.classList.remove('selected');
+                        } else {
+                            if (!q.multi) {
+                                sel.length = 0;
+                                gridClassList.querySelectorAll(`.grid-class-item[data-q="${qi}"]`).forEach(el => el.classList.remove('selected'));
+                            }
+                            sel.push(opt);
+                            chip.classList.add('selected');
+                        }
+                        if (isCol) gridSelected = sel.slice();
                     };
                     gridClassList.appendChild(chip);
                 });
-            }
+            });
         }
 
         gridChangeClassLink.onclick = (e) => {
             e.preventDefault();
             gridAutoApplied = false;
-            renderClassStep();
+            renderQuestionsStep();
         };
 
-        // STEP 2: 選択クラスの予定を抽出（この時点では登録しない）
-        // 進捗ステップ2〜4に連動: 抽出リクエスト中はステップ2＋3本バー、
-        // 応答受信（サーバー側で3並列抽出とマージが完了した時点）でステップ3→4を順に表示
+        // STEP 2: 予定の構造化抽出（この時点では登録しない）
+        // グリッド見込みなら進捗ステップ2〜4＋3本バー（3ラン多数決）、
+        // それ以外（献立・チラシ等の汎用1ラン）はローダー＋一文の簡略表示
         gridExtractBtn.onclick = async () => {
             if (!gridBlob) return;
-            if (gridSelected.length === 0) { gridShowError(g.selectClassFirst); return; }
-            gridSetBusy('', false);
+            const hasColQ = bulkQuestions.some(q => q.type === 'column_select');
+            if (bulkLikelyMode === 'grid' && hasColQ && gridSelected.length === 0) { gridShowError(g.selectClassFirst); return; }
             gridClassStep.style.display = 'none';
-            stepsShow();
-            stepSet(1, 'active');
-            stepBars(true, false);
+            if (bulkLikelyMode === 'grid') {
+                gridSetBusy('', false);
+                stepsShow();
+                stepSet(1, 'active');
+                stepBars(true, false);
+            } else {
+                stepsReset();
+                gridSetBusy(g.genericExtracting);
+            }
             try {
                 const fd = new FormData();
                 fd.append('file', gridBlob, gridFileName());
-                fd.append('classes', JSON.stringify(gridSelected));
+                fd.append('docTypes', JSON.stringify(bulkDocTypes));
+                fd.append('answers', JSON.stringify(bulkQuestions.map((q, i) => ({ type: q.type, prompt: q.prompt, values: bulkAnswers[i] }))));
                 fd.append('timeZone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Tokyo');
                 fd.append('targetLang', localStorage.getItem('oneshot_target_lang') || 'auto');
-                const res = await gridFetch(`/grid/extract?cache-bust=${Date.now()}`, { method: 'POST', body: fd }, 90000);
+                const res = await gridFetch(`/bulk/extract?cache-bust=${Date.now()}`, { method: 'POST', body: fd }, 120000);
                 const data = await res.json();
                 if (gridHandleAuthError(res, data)) { stepsReset(); return; }
                 if (gridHandleLimit(data)) { stepsReset(); return; }
                 if (!data.success) { stepsReset(); gridShowError(data.error); return; }
 
                 gridEvents = data.events || [];
+                bulkMode = data.mode === 'generic' ? 'generic' : 'grid';
+                if (data.selectedClasses && data.selectedClasses.length > 0) gridSelected = data.selectedClasses;
 
-                // 3並列抽出が完了 → バーを100%にしてステップ2完了
-                stepBars(true, true);
-                stepSet(1, 'done');
-                // マージ（突き合わせ）はサーバー側で応答直前に実施済み → ステップ3を短く表示
-                stepSet(2, 'active');
-                await new Promise(r => setTimeout(r, 500));
-                stepSet(2, 'done');
-                stepSet(3, 'active');
-                await new Promise(r => setTimeout(r, 400));
-                stepSet(3, 'done');
-                await new Promise(r => setTimeout(r, 250));
+                if (bulkLikelyMode === 'grid' && bulkMode === 'grid') {
+                    // 3並列抽出が完了 → バーを100%にしてステップ2完了
+                    stepBars(true, true);
+                    stepSet(1, 'done');
+                    // マージ（突き合わせ）はサーバー側で応答直前に実施済み → ステップ3を短く表示
+                    stepSet(2, 'active');
+                    await new Promise(r => setTimeout(r, 500));
+                    stepSet(2, 'done');
+                    stepSet(3, 'active');
+                    await new Promise(r => setTimeout(r, 400));
+                    stepSet(3, 'done');
+                    await new Promise(r => setTimeout(r, 250));
+                }
                 stepsReset();
 
                 status.innerText = '';
@@ -1534,6 +1620,11 @@
             gridUnverifiedHint.innerText = g.unverifiedHint;
             gridUnverifiedHint.style.display = hasLow ? 'block' : 'none';
 
+            // 対象バッジ: グリッドは複数クラス選択時、汎用は対象（列・人・系列）が複数種のとき
+            const showTargetBadge = bulkMode === 'generic'
+                ? new Set(gridEvents.map(ev => ev.className).filter(Boolean)).size > 1
+                : gridSelected.length > 1;
+
             gridEventList.innerHTML = '';
             gridEvents.forEach((ev, i) => {
                 const row = document.createElement('label');
@@ -1552,7 +1643,7 @@
 
                 const body = document.createElement('span');
                 body.textContent = ev.summary;
-                if (gridSelected.length > 1 && ev.className) {
+                if (showTargetBadge && ev.className) {
                     const cls = document.createElement('span');
                     cls.className = 'grid-badge cls';
                     cls.textContent = ev.className;
@@ -1591,7 +1682,9 @@
                         events: chosen,
                         colorId: selectedColorId,
                         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Tokyo',
-                        multiClass: gridSelected.length > 1
+                        multiClass: bulkMode === 'generic'
+                            ? new Set(chosen.map(ev => ev.className).filter(Boolean)).size > 1
+                            : gridSelected.length > 1
                     })
                 }, 180000);
                 const data = await res.json();
