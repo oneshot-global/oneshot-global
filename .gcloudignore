@@ -1,4 +1,6 @@
 *.txt
+# robots.txt は本番に必要なので *.txt 除外から再許可する
+!robots.txt
 *.zip
 *.rar
 *.exe
