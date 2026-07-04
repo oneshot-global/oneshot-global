@@ -10,4 +10,5 @@ node_modules
 Stripe
 # 日本語ファイル名はWindowsのzip化で文字化けし、Cloud Runのイメージ取り込みが失敗するため除外
 oneshotcal_*.md
-*.PNG
+# 注意: ワイルドカードの拡張子指定はWindowsでは大文字小文字を区別せず public/img/*.png も巻き込むため、ファイル名で指定する
+test-images.PNG
