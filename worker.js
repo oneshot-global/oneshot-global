@@ -85,7 +85,11 @@ return res.status(400).send(`Webhook Error: ${err.message}`);
 
 if (event.type === 'checkout.session.completed' || event.type === 'invoice.paid') {
 const session = event.data.object;
-const subId = session.metadata?.subId || session.subscription_details?.metadata?.subId;
+// 新しいStripe APIバージョン(2025-03-31以降)では invoice のサブスクリプション情報が
+// parent.subscription_details 配下に移動したため、そのパスも参照する
+const subId = session.metadata?.subId
+  || session.subscription_details?.metadata?.subId
+  || session.parent?.subscription_details?.metadata?.subId;
 const subscriptionId = session.subscription;
 const customerId = session.customer;
 
@@ -185,8 +189,21 @@ app.use((req, res, next) => {
     next();
 });
 
+// 既知のAIクローラーのUser-Agent（GEO対策: 英語版LPを配信）
+// ※Google-Extended / Applebot-Extended はrobots.txt用トークンでUAとしては通常出現しないが念のため含める
+const AI_CRAWLER_UA_RE = /GPTBot|OAI-SearchBot|ChatGPT-User|ClaudeBot|Claude-Web|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Google-Extended|Google-CloudVertexBot|Applebot-Extended|CCBot|Bytespider|meta-externalagent|FacebookBot|Amazonbot|cohere-ai|MistralAI-User|DuckAssistBot|YouBot/i;
+
 app.get('/', (req, res) => {
+    // AIクローラーはUser-Agentで判定し、英語版LPを返す
+    const ua = req.headers['user-agent'] || '';
+    if (AI_CRAWLER_UA_RE.test(ua)) {
+        return res.sendFile(path.join(__dirname, 'public', 'lp-en.html'));
+    }
     const acceptLang = req.headers['accept-language'] || '';
+    // Accept-Languageがない場合（Googlebot等）は日本語LPをデフォルトにする
+    if (!acceptLang) {
+        return res.sendFile(path.join(__dirname, 'public', 'lp.html'));
+    }
     const userLang = acceptLang.startsWith('ja') ? 'ja' : (acceptLang.startsWith('de') ? 'de' : (acceptLang.startsWith('fr') ? 'fr' : (acceptLang.startsWith('es') ? 'es' : 'en')));
     const fileMap = {
         ja: 'lp.html',
@@ -196,7 +213,7 @@ app.get('/', (req, res) => {
         en: 'lp-en.html'
     };
     let fileName = fileMap[userLang] || 'lp-en.html';
-    // 言語別LPが未作成の場合は lp-en.html → lp.html の順にフォールバック（AIクローラー含む非日本語アクセスのエラー防止）
+    // 言語別LPが未作成の場合は lp-en.html → lp.html の順にフォールバック（非日本語アクセスのエラー防止）
     if (!fs.existsSync(path.join(__dirname, 'public', fileName))) {
         fileName = fs.existsSync(path.join(__dirname, 'public', 'lp-en.html')) ? 'lp-en.html' : 'lp.html';
     }
