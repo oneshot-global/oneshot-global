@@ -145,6 +145,7 @@
             modal_agreement_ready: "規約に同意して次へ進むことができます。",
             modal_cancel: "",
             modal_ok: "規約に同意して次へ",
+            premium_limit_msg: function(d) { return `今月の利用上限（30回）に達しました。${d ? '次回リセット: ' + d : '翌月に自動で回復します'}`; },
             grid: {
                 modeLink: "📅 月間予定表モード（β）",
                 backLink: "← 通常モード（1画像1予定）に戻る",
@@ -258,6 +259,7 @@
             modal_agreement_ready: "You can now agree and proceed.",
             modal_cancel: "",
             modal_ok: "Agree and Proceed",
+            premium_limit_msg: function(d) { return `You've reached this month's limit (30 scans).${d ? ' Next reset: ' + d : ''}`; },
             grid: {
                 modeLink: "📅 Monthly Grid Mode (β)",
                 backLink: "← Back to standard mode (one event per image)",
@@ -367,6 +369,7 @@
             modal_agreement_ready: "Sie können nun zustimmen.",
             modal_cancel: "",
             modal_ok: "Zustimmen und weiter",
+            premium_limit_msg: function(d) { return `Monatslimit (30 Scans) erreicht.${d ? ' Nächster Reset: ' + d : ''}`; },
             grid: {
                 modeLink: "📅 Monatsplan-Modus (β)",
                 backLink: "← Zurück zum Standardmodus (ein Termin pro Bild)",
@@ -468,6 +471,7 @@
             modal_agreement_ready: "Vous pouvez maintenant accepter.",
             modal_cancel: "",
             modal_ok: "Accepter et continuer",
+            premium_limit_msg: function(d) { return `Limite mensuelle atteinte (30 scans).${d ? ' Prochain reset : ' + d : ''}`; },
             grid: {
                 modeLink: "📅 Mode planning mensuel (β)",
                 backLink: "← Retour au mode standard (un événement par image)",
@@ -569,6 +573,7 @@
             modal_agreement_ready: "Ya puede aceptar.",
             modal_cancel: "",
             modal_ok: "Aceptar y continuar",
+            premium_limit_msg: function(d) { return `Límite mensual alcanzado (30 escaneos).${d ? ' Próximo reinicio: ' + d : ''}`; },
             grid: {
                 modeLink: "📅 Modo horario mensual (β)",
                 backLink: "← Volver al modo estándar (un evento por imagen)",
@@ -1004,6 +1009,15 @@
                 return;
             }
             
+            if (data.limitReached && data.premiumLimit) {
+                // 既にプレミアム: アップグレードモーダルは出さず案内のみ（二重課金防止）
+                mainCard.classList.remove('analyzing');
+                loader.style.display = 'none';
+                status.className = '';
+                status.innerHTML = `<small style="color:#94a3b8">${t.premium_limit_msg(data.nextResetDate)}</small>`;
+                return;
+            }
+
             if (data.limitReached) {
                 pendingStripeUrl = data.redirectUrl;
                 subModal.classList.remove('hidden');
@@ -1311,6 +1325,19 @@
             return true;
         }
 
+        // limitReached 応答の共通処理。プレミアム上限は案内のみ（二重課金防止）、
+        // 無料ユーザーは既存どおりアップグレードモーダルへ。
+        function gridHandleLimit(data) {
+            if (!data.limitReached) return false;
+            if (data.premiumLimit) {
+                status.className = '';
+                status.innerHTML = `<small style="color:#94a3b8">${t.premium_limit_msg(data.nextResetDate)}</small>`;
+            } else {
+                gridOpenSubModal(data.redirectUrl);
+            }
+            return true;
+        }
+
         // 既存 startUploadFlow の limitReached 処理と同じ挙動（Stripeモーダル）
         function gridOpenSubModal(url) {
             pendingStripeUrl = url;
@@ -1460,7 +1487,7 @@
                 const res = await gridFetch(`/grid/extract?cache-bust=${Date.now()}`, { method: 'POST', body: fd }, 90000);
                 const data = await res.json();
                 if (gridHandleAuthError(res, data)) { stepsReset(); return; }
-                if (data.limitReached) { stepsReset(); gridOpenSubModal(data.redirectUrl); return; }
+                if (gridHandleLimit(data)) { stepsReset(); return; }
                 if (!data.success) { stepsReset(); gridShowError(data.error); return; }
 
                 gridEvents = data.events || [];
@@ -1569,7 +1596,7 @@
                 }, 180000);
                 const data = await res.json();
                 if (gridHandleAuthError(res, data)) return;
-                if (data.limitReached) { gridOpenSubModal(data.redirectUrl); return; }
+                if (gridHandleLimit(data)) return;
                 if (!data.success) { gridShowError(data.error); return; }
 
                 if (data.targetMonth) currentMonthPath = data.targetMonth;

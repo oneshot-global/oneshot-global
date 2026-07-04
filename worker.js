@@ -543,6 +543,8 @@ if (userStatus.isBanned) {
 
 let isLimitReached = false;
 let stripeUrl = "";
+let isPremiumLimit = false;
+let premiumResetDate = "";
 
 try {
 const isPremium = userStatus.isPremium === true;
@@ -556,7 +558,17 @@ const usageCount = currentCycleHistory.length;
 
 if (req.session) req.session.isPremium = isPremium;
 
-if ((!isPremium && usageCount >= 3) || (isPremium && usageCount >= 30)) {
+if (isPremium && usageCount >= 30) {
+  // 二重課金防止ガード: 既にプレミアムのユーザーには新たなcheckoutを作らず、
+  // 次回リセット日の案内のみ返す（アップグレードモーダルに誘導しない）
+  isLimitReached = true;
+  isPremiumLimit = true;
+  if (userStatus.premiumSince) {
+    const resetDate = new Date(userStatus.premiumSince);
+    resetDate.setMonth(resetDate.getMonth() + 1);
+    premiumResetDate = `${resetDate.getMonth() + 1}/${resetDate.getDate()}`;
+  }
+} else if (!isPremium && usageCount >= 3) {
   let customerId;
   try {
     const search = await stripe.customers.search({
@@ -566,7 +578,7 @@ if ((!isPremium && usageCount >= 3) || (isPremium && usageCount >= 30)) {
   } catch (searchErr) {
     console.warn("Stripe customer search skipped or failed, proceeding with new customer creation.");
   }
-  
+
   const checkoutSession = await stripe.checkout.sessions.create({
     customer: customerId,
     payment_method_types: ['card'],
@@ -614,7 +626,7 @@ bb.on('file', (n, file) => {
 
 bb.on('finish', async () => {
 if (isLimitReached) {
-    return res.json({ limitReached: true, redirectUrl: stripeUrl });
+    return res.json({ limitReached: true, premiumLimit: isPremiumLimit, nextResetDate: premiumResetDate, redirectUrl: stripeUrl });
 }
 
 const acceptLang = req.headers['accept-language'] || '';
@@ -1173,7 +1185,18 @@ async function gridCheckLimit(subId) {
   }
   const usageCount = currentCycleHistory.length;
 
-  if ((!isPremium && usageCount >= 3) || (isPremium && usageCount >= 30)) {
+  if (isPremium && usageCount >= 30) {
+    // 二重課金防止ガード: 既にプレミアムのユーザーには新たなcheckoutを作らない
+    let nextResetDate = '';
+    if (userStatus.premiumSince) {
+      const resetDate = new Date(userStatus.premiumSince);
+      resetDate.setMonth(resetDate.getMonth() + 1);
+      nextResetDate = `${resetDate.getMonth() + 1}/${resetDate.getDate()}`;
+    }
+    return { limitReached: true, premiumLimit: true, nextResetDate: nextResetDate };
+  }
+
+  if (!isPremium && usageCount >= 3) {
     let customerId;
     try {
       const search = await stripe.customers.search({
@@ -1344,7 +1367,7 @@ app.post('/grid/extract', async (req, res) => {
     return res.status(500).json({ error: 'Subscription service error. Please try again later.' });
   }
   if (limitState.banned) return res.status(403).json({ error: 'Account suspended due to excessive errors.' });
-  if (limitState.limitReached) return res.json({ limitReached: true, redirectUrl: limitState.stripeUrl });
+  if (limitState.limitReached) return res.json({ limitReached: true, premiumLimit: limitState.premiumLimit || false, nextResetDate: limitState.nextResetDate || '', redirectUrl: limitState.stripeUrl || '' });
 
   try {
     const { buffer, mimeType, fields, truncated } = await collectGridUpload(req);
@@ -1645,7 +1668,7 @@ app.post('/grid/register', async (req, res) => {
     return res.status(500).json({ error: 'Subscription service error. Please try again later.' });
   }
   if (limitState.banned) return res.status(403).json({ error: 'Account suspended due to excessive errors.' });
-  if (limitState.limitReached) return res.json({ limitReached: true, redirectUrl: limitState.stripeUrl });
+  if (limitState.limitReached) return res.json({ limitReached: true, premiumLimit: limitState.premiumLimit || false, nextResetDate: limitState.nextResetDate || '', redirectUrl: limitState.stripeUrl || '' });
 
   try {
     const body = req.body || {};
