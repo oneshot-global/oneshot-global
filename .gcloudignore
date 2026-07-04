@@ -3,5 +3,11 @@
 *.rar
 *.exe
 .git
+.gitignore
+.claude
 node_modules
 .env
+Stripe
+# 日本語ファイル名はWindowsのzip化で文字化けし、Cloud Runのイメージ取り込みが失敗するため除外
+oneshotcal_*.md
+*.PNG
