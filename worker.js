@@ -1449,6 +1449,107 @@ function gridLangInstruction(targetLang) {
   return langInstruction;
 }
 
+// ── 自動除外フィルタ（登録価値のない自明情報をカレンダー登録候補から外す） ──
+// 1) 国民の祝日名そのもの（海の日 等）: 多くのカレンダーが自動表示するため
+//    二重登録の価値がない。行ズレで日付がズレていても「名前」で消えるため、
+//    土日祝の帯の境界（行ズレ多発地帯）の誤登録候補が表面化しなくなる。
+// 2) 日曜・祝日の「素の休園」: 規則的で自明な休み。
+//    完全一致方式なので「土曜日保育休園」「臨時休園」等の特別な休みは残る。
+// プロンプト・3ラン多数決・notices生成には一切手を入れない後処理フィルタ。
+// 祝日名は日本語のみ対応（本機能の主要利用者層に合わせたv1スコープ）。
+
+const JP_HOLIDAY_NAMES = new Set([
+  '元日', '元旦', '成人の日', '建国記念の日', '建国記念日', '天皇誕生日',
+  '春分の日', '昭和の日', '憲法記念日', 'みどりの日', 'こどもの日',
+  '海の日', '山の日', '敬老の日', '秋分の日', 'スポーツの日', '体育の日',
+  '文化の日', '勤労感謝の日', '振替休日', '国民の休日'
+]);
+
+const JP_PLAIN_CLOSURE_NAMES = new Set(['休園', '休園日', '休み', 'お休み', '閉園']);
+
+// 春分・秋分は天文計算によるため期限付きテーブル（範囲外の年は祝日判定から
+// 単に外れるだけ＝除外されず登録候補に残る、という安全側の挙動になる）
+const JP_EQUINOX = {
+  2025: ['03-20', '09-23'], 2026: ['03-20', '09-23'], 2027: ['03-21', '09-23'],
+  2028: ['03-20', '09-22'], 2029: ['03-20', '09-23'], 2030: ['03-20', '09-23'],
+  2031: ['03-21', '09-23']
+};
+
+const jpHolidayCache = new Map();
+function jpHolidaySet(year) {
+  if (jpHolidayCache.has(year)) return jpHolidayCache.get(year);
+  const pad = n => String(n).padStart(2, '0');
+  const dstr = (m, d) => `${year}-${pad(m)}-${pad(d)}`;
+  const dow = s => new Date(`${s}T00:00:00Z`).getUTCDay();
+  const nthMonday = (m, nth) => {
+    let count = 0;
+    for (let d = 1; d <= 31; d++) {
+      const s = dstr(m, d);
+      if (dow(s) === 1 && ++count === nth) return s;
+    }
+  };
+  const base = new Set([
+    dstr(1, 1),                          // 元日
+    nthMonday(1, 2),                     // 成人の日
+    dstr(2, 11),                         // 建国記念の日
+    dstr(2, 23),                         // 天皇誕生日
+    dstr(4, 29),                         // 昭和の日
+    dstr(5, 3), dstr(5, 4), dstr(5, 5),  // 憲法記念日・みどりの日・こどもの日
+    nthMonday(7, 3),                     // 海の日
+    dstr(8, 11),                         // 山の日
+    nthMonday(9, 3),                     // 敬老の日
+    nthMonday(10, 2),                    // スポーツの日
+    dstr(11, 3), dstr(11, 23)            // 文化の日・勤労感謝の日
+  ]);
+  for (const md of (JP_EQUINOX[year] || [])) base.add(`${year}-${md}`); // 春分・秋分
+  const all = new Set(base);
+  const next = s => { const d = new Date(`${s}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10); };
+  // 振替休日: 日曜に当たった祝日は、直後の「祝日でない日」が休日になる
+  for (const s of base) {
+    if (dow(s) === 0) {
+      let t = next(s);
+      while (all.has(t)) t = next(t);
+      all.add(t);
+    }
+  }
+  // 国民の休日: 前日と翌日を祝日に挟まれた平日は休日になる（例: 2026-09-22）
+  for (const s of [...base]) {
+    const t = next(s);
+    if (!all.has(t) && base.has(next(t)) && dow(t) !== 0) all.add(t);
+  }
+  jpHolidayCache.set(year, all);
+  return all;
+}
+
+function jpIsHoliday(dateStr) {
+  return jpHolidaySet(Number(dateStr.slice(0, 4))).has(dateStr);
+}
+
+// 照合用の正規化: 空白・行頭の絵文字/記号・末尾の短い括弧書き（祝・休園等）を剥がす
+function bulkNormalizeName(summary) {
+  return String(summary)
+    .replace(/[\s　]+/g, '')
+    .replace(/^[^0-9A-Za-zぁ-んァ-ヶ一-龠]+/, '')
+    .replace(/[（(](祝日?|休園|休み|お休み)[)）]$/, '');
+}
+
+// 除外理由を返す（除外しない場合は null）。正規化前の生イベントを渡す。
+// - 祝日名: 日付にかかわらず名前だけで除外（行ズレしていても消えるのが狙い）
+// - 素の休園: 単日・時刻なし・note空・日曜または祝日の日付、のときのみ除外
+function bulkAutoExcludeReason(ev) {
+  const name = bulkNormalizeName(ev.summary);
+  if (JP_HOLIDAY_NAMES.has(name)) return 'holiday';
+  if (JP_PLAIN_CLOSURE_NAMES.has(name)) {
+    const multiDay = typeof ev.endDate === 'string' && GRID_DATE_RE.test(ev.endDate) && ev.endDate > ev.date;
+    const hasTime = typeof ev.startTime === 'string' && GRID_TIME_RE.test(ev.startTime);
+    const hasNote = typeof ev.note === 'string' && ev.note.trim() !== '';
+    const sunday = new Date(`${ev.date}T00:00:00Z`).getUTCDay() === 0;
+    if (!multiDay && !hasTime && !hasNote && (sunday || jpIsHoliday(ev.date))) return 'closure';
+  }
+  return null;
+}
+// ── 自動除外フィルタここまで ──
+
 // /grid/extract のハンドラー本体から切り出した3ラン多数決抽出（挙動は切り出し前と同一）。
 // 旧 /grid/extract と新 /bulk/extract の両方がこれを呼ぶ。
 // extraPrompt はユーザー回答（対象年月など）をプロンプト末尾に追記するためのもので、
@@ -1619,9 +1720,13 @@ C) notices の生成条件（厳守）:
     }
     parsed.notices = noticesUnion;
     const events = [];
+    let autoExcluded = 0;
     for (const ev of rawEvents) {
       if (!ev || typeof ev.summary !== 'string' || !ev.summary.trim()) continue;
       if (typeof ev.date !== 'string' || !GRID_DATE_RE.test(ev.date)) continue;
+
+      // 自動除外: 祝日名そのもの・日曜/祝日の素の休園は登録候補にしない
+      if (bulkAutoExcludeReason(ev)) { autoExcluded++; continue; }
 
       const evColumns = Array.isArray(ev.columns) ? ev.columns.filter(c => typeof c === 'string') : [];
       // 帯(全列)は選択した全クラスへ複製。個別列はクラス名が一致するものだけ。
@@ -1682,6 +1787,8 @@ C) notices の生成条件（厳守）:
 
     // 日付順 → クラス順で安定ソート
     events.sort((a, b) => (a.date + (a.startTime || '')).localeCompare(b.date + (b.startTime || '')) || a.className.localeCompare(b.className));
+
+    if (autoExcluded > 0) console.log(`GRID EXTRACT FILTER: auto-excluded ${autoExcluded} candidate(s) (holiday name / regular closure)`);
 
     return {
       isGrid: true,
@@ -1982,9 +2089,13 @@ ${answerSection}
   const rawEvents = Array.isArray(parsed?.events) ? parsed.events : [];
 
   const events = [];
+  let autoExcluded = 0;
   for (const ev of rawEvents) {
     if (!ev || typeof ev.summary !== 'string' || !ev.summary.trim()) continue;
     if (typeof ev.date !== 'string' || !GRID_DATE_RE.test(ev.date)) continue;
+
+    // 自動除外: 祝日名そのもの・日曜/祝日の素の休園は登録候補にしない
+    if (bulkAutoExcludeReason(ev)) { autoExcluded++; continue; }
 
     // 曜日の機械的検算: 印字曜日と date の実曜日が食い違う場合は行ズレの
     // 可能性が高いので「未検証」に落とす（グリッド側と同じ設計）
@@ -2018,6 +2129,8 @@ ${answerSection}
   }
 
   events.sort((a, b) => (a.date + (a.startTime || '')).localeCompare(b.date + (b.startTime || '')) || (a.className || '').localeCompare(b.className || ''));
+
+  if (autoExcluded > 0) console.log(`GENERIC EXTRACT FILTER: auto-excluded ${autoExcluded} candidate(s) (holiday name / regular closure)`);
 
   return {
     year: Number.isInteger(parsed?.year) ? parsed.year : null,
