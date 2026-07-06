@@ -19,7 +19,7 @@
 - 画像はサーバーに保持せず、フロントが各ステップで再送信（プライバシーポリシー整合）
 - クラス選択は Firestore `users/{subId}.gridClassPrefs` に保存、次回自動適用（再選択導線あり）
 - 取り消し: `gridBatches/{batchId}` にイベントID保存（24h TTL用の expireAt あり、TTLポリシー自体は未設定）。所有者チェックあり。回数は返却しない（悪用防止）
-- 解析中は4段階ステップUI（列確認→3本バーの読み取り→突き合わせ→準備）。フロントの追加UIはすべて app.js で動的生成（HTML 6ファイルは骨組みのみ）
+- 解析中の進捗UIは**%カウンター1本に統一**（2026-07-06に4段階ステップUIから置換。下記「%進捗表示」参照）。フロントの追加UIはすべて app.js で動的生成（HTML 6ファイルは骨組みのみ）
 
 ### 2. 抽出の設計方針（重要・変更時は経緯を踏まえること）
 - **画像/PDFを Gemini にマルチモーダル直接入力**（Vision OCRテキストでは列・帯・矢印・点線の空間情報が失われるため）。幅1800px未満の画像は2倍アップスケール
@@ -47,7 +47,14 @@
   - `POST /bulk/extract` … 非対称ルーティング。**docTypes 上位2件に grid_monthly があり、かつ列回答あり**→ 既存3ラン多数決（`runGridExtraction`）、isGrid:false なら汎用へ内部フォールバック。それ以外→ 汎用1ラン（`runGenericExtraction`、temp 0、evidence要求＋曜日検算は日英対応）。ガード・回数消費なしは /grid/extract と同一
 - **質問型ホワイトリスト**: column_select（クラス選択の一般化、gridClassPrefs 自動適用は従来どおり）/ region_select / **date_confirm（年・月どちらが欠けても「2026年7月」形式の年月一体候補・単一選択。フロントは先頭候補を既定選択）** / target_select / free（最大1問・選択肢必須）。全質問chip選択式・最大3問・1ターンのみ
 - リファクタ: 旧 /grid/extract のハンドラー本体を `runGridExtraction(filePart, opts)` に切り出し（**プロンプト・多数決ロジックはHEAD比でバイト同一**を機械検証済み。`extraPrompt` 引数は旧経路では常に空）。旧 /grid/columns・/grid/extract は旧フロントのキャッシュ対策で当面残す（**次々回のデプロイで削除予定**）
-- フロント（app.js）: gridDetectColumns→bulkTriage、renderClassStep→renderQuestionsStep（汎用chipレンダラー・質問ゼロなら readyTitle 表示で即抽出可）。進捗UIは likelyMode=grid なら従来4段階、generic はローダー＋一文。レビュー/登録/undo は既存流用（汎用は className に target を載せる）。HTML 6ファイルは変更ゼロ
+- フロント（app.js）: gridDetectColumns→bulkTriage、renderClassStep→renderQuestionsStep（汎用chipレンダラー・質問ゼロなら readyTitle 表示で即抽出可）。レビュー/登録/undo は既存流用（汎用は className に target を載せる）。HTML 6ファイルは変更ゼロ
+
+### %進捗表示への統一（2026-07-06。revision oneshot-00474-hmv で本番反映済み）
+- 青い線スキャン・4段階ステップUI・簡略ローダーの3種類を、フェーズ別の**%カウンター1本**に統一（フェーズ1: triage、フェーズ2: 抽出。通し%ではない）
+- 疑似進捗: `p = 90(1-e^(-t/τ))`、**中央値定数 9.5s（triage）/ 45s（grid抽出）/ 15s（汎用抽出）** は本番Cloud Runログの実測由来。カーブが寝たら +0.15%/秒 で97%上限まで微増、**100%は完了イベントのみ**（嘘をつかない・後退なし・エラー時は即非表示）
+- gridモードのみ `consensusNote`（「複数回照合して精度を高めています」×5言語）＋離脱OK注記、汎用は離脱OK注記のみ
+- `scanning-overlay`（青い線）と `.loader` は**通常モード（1画像1予定）が使用中なので削除禁止**。一括登録モードでは `gridSetBusyQuiet`（ボタン無効化のみ）を使う
+- 中央値定数の再計測クエリ: `gcloud logging read` で httpRequest.latency を /bulk/triage・/bulk/extract 別に集計（2026-07-06 実施分を参照）
 - ローカル検証結果: レナ7月号→triage(grid_monthly/5列/column_select 1問)・grid抽出33件、献立PDF→menu_monthly・region_select発火・26件(1日1件終日・分量ノイズなし)、年なしチラシ→date_confirm発火・回答反映、風景画像→notSchedule、gridヒント強制→内部フォールバック発火、未ログイン401
 - ブラウザ実操作（D項）も完了: puppeteer-core＋Chrome、`x-forwarded-proto: https` を付ける8081プロキシで trust proxy + secure cookie を本番同等に再現し、偽造セッションCookieで実施。S1 レナ7月号（自動適用/変更導線/4段階UI/レビュー37件）、S2 献立PDF（質問chip＋簡略進捗＋26件。**triageの質問内容はランごとに揺れる**: region_select だったり target_select「昼/午後」だったり質問ゼロだったり—いずれもUIは正常系）、S3 date_confirm既定選択＋単一選択の選び直し、S4 質問ゼロ→readyTitle→即抽出5件、S5 実アカウントで register 2件（残り29回表示）→ undo 2件、全PASS。テストユーザー・gridBatches 掃除済み
 - コスト: 一括登録1回 = triage 1 + (grid 3 or 汎用 1) = 最大4呼び出し（現行と同数、汎用は2で安い）
