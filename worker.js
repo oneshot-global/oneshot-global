@@ -13,7 +13,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash } from 'crypto';
+import { beginUploadDedup, markUploadDedupDone, clearUploadDedup } from './db-dedup.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -617,20 +618,57 @@ if (name === 'text') pastedText = val;
 });
 
 bb.on('file', (n, file) => {
-    if (isLimitReached) {
-        file.resume();
-        return;
-    }
+    // 上限到達時もバイト列は収集する（べき等判定のハッシュ計算に必要。
+    // 「初回がタイムアウト後に完走・消費済み → 再試行で limitReached」のケースで
+    // 課金モーダルではなく初回の成功レスポンスを replay するため）。
+    // フロントはリサイズ済み(≦1600px JPEG)を送るためメモリ影響は軽微
     file.on('data', (d) => { buffer = Buffer.concat([buffer, d]); });
 });
 
 bb.on('finish', async () => {
-if (isLimitReached) {
-    return res.json({ limitReached: true, premiumLimit: isPremiumLimit, nextResetDate: premiumResetDate, redirectUrl: stripeUrl });
-}
-
 const acceptLang = req.headers['accept-language'] || '';
 const userLang = acceptLang.startsWith('ja') ? 'ja' : (acceptLang.startsWith('de') ? 'de' : (acceptLang.startsWith('fr') ? 'fr' : (acceptLang.startsWith('es') ? 'es' : 'en')));
+
+// ── べき等化: 同一ユーザー×同一コンテンツの短時間の再送を検知 ──
+// done なら limitReached より優先して初回の成功レスポンスを replay する。
+// dedupストア障害時は重複排除なしで通常処理に落とす（安全側＝従来動作）
+let dedupHash = null;
+try {
+  const content = (buffer && buffer.length > 0) ? buffer : Buffer.from(pastedText || '', 'utf8');
+  if (content.length > 0) {
+    dedupHash = createHash('sha256').update(subId).update('|').update(content).digest('hex');
+    const dedup = await beginUploadDedup(dedupHash, subId);
+    if (dedup.state === 'done' && dedup.response) {
+      console.log('UPLOAD DEDUP: replayed previous success response');
+      return res.json(dedup.response);
+    }
+    if (dedup.state === 'pending') {
+      console.log('UPLOAD DEDUP: duplicate request while first is still processing');
+      const pendingMsg = {
+        ja: '処理に時間がかかっています。少し待ってから、直前の予定が登録済みでないかご確認のうえ、再度お試しください。',
+        en: 'This is taking longer than usual. Please wait a moment, check whether the event was already added to your calendar, and then try again.',
+        de: 'Die Verarbeitung dauert länger als üblich. Bitte warten Sie einen Moment, prüfen Sie, ob der Termin bereits im Kalender eingetragen wurde, und versuchen Sie es dann erneut.',
+        fr: "Le traitement prend plus de temps que prévu. Patientez un instant, vérifiez si l'événement a déjà été ajouté à votre agenda, puis réessayez.",
+        es: 'El proceso está tardando más de lo habitual. Espere un momento, compruebe si el evento ya se añadió a su calendario y vuelva a intentarlo.'
+      };
+      return res.json({ success: false, error: pendingMsg[userLang] || pendingMsg.en });
+    }
+  }
+} catch (e) {
+  console.error('UPLOAD DEDUP: begin failed, continuing without dedup:', e.message);
+  dedupHash = null;
+}
+
+// 登録まで到達せずに終わる全経路（上限・解析失敗・認証エラー等）で pending を
+// 確実に消すための共通ヘルパー。消さないと同一内容の再試行が最大15分 pending 扱いになる
+const dedupAbort = async () => {
+  if (dedupHash) await clearUploadDedup(dedupHash).catch(() => {});
+};
+
+if (isLimitReached) {
+    await dedupAbort(); // 上限解消後の再試行をブロックしない
+    return res.json({ limitReached: true, premiumLimit: isPremiumLimit, nextResetDate: premiumResetDate, redirectUrl: stripeUrl });
+}
 
 try {
   let ocrText = "";
@@ -987,17 +1025,20 @@ try {
   const parsedData = JSON.parse(cleanJson);
   
   if (parsedData.error) {
+    await dedupAbort();
     await db.incrementErrorCount(subId, 10);
     return res.json({ success: false, error: parsedData.message || (userLang === 'ja' ? "解析エラー: 詳細はGuideを確認してください。" : (userLang === 'de' ? "Analysefehler: Details finden Sie im Guide." : (userLang === 'fr' ? "Erreur d'analyse : veuillez vous référer au Guide pour plus de détails." : (userLang === 'es' ? "Error de análisis: consulte la Guía para más detalles." : "Analysis Error: Please refer to the Guide for details.")))) });
   }
 
   if (!parsedData.events || parsedData.events.length === 0) {
+    await dedupAbort();
     await db.incrementErrorCount(subId, 10);
     return res.json({ success: false, error: userLang === 'ja' ? "解析エラー: 詳細はGuideを確認してください。" : (userLang === 'de' ? "Analysefehler: Details finden Sie im Guide." : (userLang === 'fr' ? "Erreur d'analyse : veuillez vous référer au Guide pour plus de détails." : (userLang === 'es' ? "Error de análisis: consulte la Guía para más detalles." : "Analysis Error: Please refer to the Guide for details."))) });
   }
 
   let events = parsedData.events;
   if (!events[0].summary || !events[0].start) {
+    await dedupAbort();
     await db.incrementErrorCount(subId, 10);
     return res.json({ success: false, error: userLang === 'ja' ? "解析エラー: 詳細はGuideを確認してください。" : (userLang === 'de' ? "Analysefehler: Details finden Sie im Guide." : (userLang === 'fr' ? "Erreur d'analyse : veuillez vous référer au Guide pour plus de détails." : (userLang === 'es' ? "Error de análisis: consulte la Guía para más detalles." : "Analysis Error: Please refer to the Guide for details."))) });
   }
@@ -1007,6 +1048,7 @@ try {
   let currentTokens = req.session?.tokens;
   
   if (!savedRefreshToken && !currentTokens) {
+    await dedupAbort();
     return res.status(401).json({ error: "Session expired. Please login again." });
   }
 
@@ -1069,16 +1111,26 @@ try {
     finalCount = Math.max(0, 3 - (finalStatus?.history?.length || 0));
   }
 
-  res.json({ 
-    success: true, 
-    count: finalStatus?.isPremium && finalCount > 30 ? 'Unlimited' : finalCount, 
-    isPremium: finalStatus?.isPremium || false, 
+  const successResponse = {
+    success: true,
+    count: finalStatus?.isPremium && finalCount > 30 ? 'Unlimited' : finalCount,
+    isPremium: finalStatus?.isPremium || false,
     nextResetDate: nextResetDate,
     targetMonth: targetMonth,
     extracted: events[0]
-  });
+  };
+
+  // 登録・消費まで完走した場合のみ done 化（以後10分の同一再送はこのレスポンスをreplay）。
+  // 保存失敗しても登録自体は成功として返す（重複排除が効かなくなるだけ＝従来動作）
+  if (dedupHash) {
+    try { await markUploadDedupDone(dedupHash, successResponse); }
+    catch (e) { console.error('UPLOAD DEDUP: markDone failed:', e.message); }
+  }
+
+  res.json(successResponse);
 } catch (e) {
   console.error("ANALYSIS ERROR:", e);
+  await dedupAbort(); // 失敗時は dedup を消して再試行可能に戻す
   const isSystemError = e.status === 429 || e.message?.includes('quota') || e.message?.includes('limit');
   if (!isSystemError) {
     await db.incrementErrorCount(subId, 10);
@@ -1091,7 +1143,7 @@ try {
   if (e.code === 403 || e.code === '403' || e.status === 403 || e.errors?.[0]?.reason === 'insufficientPermissions') {
       return res.status(403).json({ error: "Insufficient permission." });
   }
-  res.status(500).json({ error: userLang === 'ja' ? "解析エラー: 詳細はGuideを確認してください。" : (userLang === 'de' ? "Analysefehler: Details finden Sie im Guide." : (userLang === 'fr' ? "Erreur d'analyse : veuillez vous référer au Guide pour plus de詳細はGuideを確認してください。" : (userLang === 'es' ? "Error de análisis: consulte la Guía para más detalles." : "Analysis Error: Please refer to the Guide for details."))) });
+  res.status(500).json({ error: userLang === 'ja' ? "解析エラー: 詳細はGuideを確認してください。" : (userLang === 'de' ? "Analysefehler: Details finden Sie im Guide." : (userLang === 'fr' ? "Erreur d'analyse : consultez le Guide pour plus de détails." : (userLang === 'es' ? "Error de análisis: consulte la Guía para más detalles." : "Analysis Error: Please refer to the Guide for details."))) });
 }
 
 });
