@@ -71,6 +71,7 @@
             anotherSync: "同期中...",
             syncing: "同期中...",
             error_generic: "解析エラー: 詳細はGuideを確認してください。",
+            timeout_msg: "処理に時間がかかっています。少し待ってから、直前の予定が登録済みでないかご確認のうえ、再度お試しください。",
             guide_title: "OneShotCal ユーザーガイド",
             tokusho_link: '特定商取引法に基づく表記',
             labelTitle: "予定名",
@@ -196,6 +197,7 @@
             anotherLibrary: "🖼️ Select Photo",
             syncing: "Syncing...",
             error_generic: "Analysis Error: Please refer to the Guide for details.",
+            timeout_msg: "This is taking longer than usual. Please wait a moment, check whether the event was already added to your calendar, and then try again.",
             guide_title: "OneShotCal User Guide",
             tokusho_link: "Legal Notice (SCTA)",
             labelTitle: "EVENT",
@@ -303,6 +305,7 @@
             anotherLibrary: "🖼️ Foto wählen",
             syncing: "Synchronisierung...",
             error_generic: "Analysefehler: Details finden Sie im Guide.",
+            timeout_msg: "Die Verarbeitung dauert länger als üblich. Bitte warten Sie einen Moment, prüfen Sie, ob der Termin bereits im Kalender eingetragen wurde, und versuchen Sie es dann erneut.",
             guide_title: "OneShotCal Benutzerhandbuch",
             tokusho_link: "Impressum (SCTA)",
             labelTitle: "EREIGNIS",
@@ -406,6 +409,7 @@
             anotherLibrary: "🖼️ Choisir Photo",
             syncing: "Synchronisation...",
             error_generic: "Erreur d'analyse : consultez le Guide.",
+            timeout_msg: "Le traitement prend plus de temps que prévu. Patientez un instant, vérifiez si l'événement a déjà été ajouté à votre agenda, puis réessayez.",
             guide_title: "Guide Utilisateur OneShotCal",
             tokusho_link: "Mentions Légales (SCTA)",
             labelTitle: "ÉVÉNEMENT",
@@ -501,6 +505,7 @@
             anotherLibrary: "🖼️ Elegir Foto",
             syncing: "Sincronizando...",
             error_generic: "Error de análisis: ver Guía.",
+            timeout_msg: "El proceso está tardando más de lo habitual. Espere un momento, compruebe si el evento ya se añadió a su calendario y vuelva a intentarlo.",
             guide_title: "Guía de Usuario OneShotCal",
             tokusho_link: "Aviso Legal (SCTA)",
             labelTitle: "EVENTO",
@@ -1041,7 +1046,9 @@
         
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 25000);
+            // 実測最大47秒（Vision OCR＋Gemini＋カレンダー登録）に対し約2倍のヘッドルーム。
+            // Cloud Run側は600秒なので、フロントのこの値が実質の打ち切り時間になる
+            const timeoutId = setTimeout(() => controller.abort(), 90000);
             const headers = {};
             headers['x-is-first-of-batch'] = 'true';
             if (subId) headers['Authorization'] = `Bearer ${subId}`;
@@ -1131,10 +1138,12 @@
         } catch (err) {
             progressReset();
             status.className = 'error-msg';
-            status.innerHTML = `${t.error_generic}<br><a href="/auth/google" style="color:#64748b; text-decoration:underline; font-size:11px;">[${t.reauth_btn}]</a>`;
-
             if (err.name === 'AbortError') {
-                window.location.reload();
+                // 90秒タイムアウト。サーバー側では登録まで完走している可能性があるため、
+                // 再試行の前にカレンダー確認を促す（二重登録の防止）
+                status.innerText = t.timeout_msg;
+            } else {
+                status.innerHTML = `${t.error_generic}<br><a href="/auth/google" style="color:#64748b; text-decoration:underline; font-size:11px;">[${t.reauth_btn}]</a>`;
             }
         }
     }
