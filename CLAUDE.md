@@ -92,6 +92,12 @@
 - Webhook のローカル/本番テスト: 実イベントを Stripe API で取得し、whsec でHMAC署名を自作して POST すれば再送信と等価
 - デプロイ時に「Container import failed」が連発したら Google 側の一時障害の可能性（2026-07-03に約1時間発生、時間を置いて解消）。ビルド成功・IAM正常なら待って再試行
 
+## 利用状況の集計方法（2026-07-06導入）
+
+- `node usage-stats.mjs [日数]`（既定30、要gcloud認証）で Cloud Logging から直近N日の利用状況を表形式で表示: ①/bulk/extract 回数とgrid/generic内訳 ②confidence:low割合 ③notices平均 ④undo率（バッチ単位） ⑤triage docTypes分布 ⑥/uploadタイムアウト率（latency>90s or 499 の近似）＋自動除外の平均件数
+- データ源はアプリログの `BULK EXTRACT:`（2026-07-05〜）・`BULK TRIAGE:`（2026-07-06〜）・`EXTRACT FILTER:` 行とリクエストログ。**Cloud Loggingの保持は既定30日**なのでそれ以前には遡れない。レガシー /grid/extract はサマリーログなしのため①〜③の集計対象外（旧フロントのキャッシュ利用者のみ・減衰中）
+- ログは件数・enum値のみで予定内容・個人情報は出力しない方針を厳守すること
+
 ## 運用フロー（このプロジェクトでの約束事）
 
 1. 実装 → ローカルで実際に動かして検証（構文チェックだけで済ませない）

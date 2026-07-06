@@ -2239,6 +2239,9 @@ app.post('/bulk/triage', async (req, res) => {
     const saved = await dbGrid.getGridClassPrefs(subId);
     const savedClasses = saved ? saved.filter(s => columns.includes(s)) : [];
 
+    // 利用状況集計用（usage-stats.mjs が参照）。件数・enum値のみで予定内容は出力しない
+    console.log(`BULK TRIAGE: docTypes=${docTypes.join(',')} questions=${questions.slice(0, 3).map(q => q.type).join(',') || 'none'} likelyMode=${bulkIsGridRoute(docTypes) ? 'grid' : 'generic'}`);
+
     const f = parsed.features || {};
     res.json({
       success: true,
