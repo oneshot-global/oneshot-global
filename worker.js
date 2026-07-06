@@ -2024,11 +2024,14 @@ const BULK_DOC_TYPES = ['grid_monthly', 'weekly_schedule', 'list_schedule', 'men
 const BULK_QUESTION_TYPES = ['column_select', 'region_select', 'date_confirm', 'target_select', 'free'];
 const BULK_LANG_NAMES = { ja: '日本語', en: 'English', de: 'Deutsch', fr: 'Français', es: 'Español' };
 
-// 非対称ルーティング: LLMの分類を確率として信用せず、グリッドの可能性が
+// 非対称ルーティング: LLMの分類を確率として信用せず、グリッド構造の可能性が
 // 少しでも上位にあれば安全側（3ラン多数決の専用ハンドラー）に倒す。
-// 誤判定のコストはGemini呼び出し1回の無駄（内部フォールバック）に限定される。
-function bulkIsGridRoute(docTypes) {
-  return docTypes.slice(0, 2).includes('grid_monthly');
+// weekly_schedule も「日付×クラス列」構造（hasColumns=列が検出/選択済み）なら
+// grid と同じ防御機構（多数決・notices・帯の複製）を適用する（2026-07-06拡張）。
+// 誤判定のコストはGemini呼び出しの増加（内部フォールバック）に限定される。
+function bulkIsGridRoute(docTypes, hasColumns) {
+  const top2 = docTypes.slice(0, 2);
+  return top2.includes('grid_monthly') || (top2.includes('weekly_schedule') && hasColumns === true);
 }
 
 // 曜日検算（汎用版）: 日本語一文字に加えて英語3文字（Mon〜Sun）も照合。
@@ -2174,7 +2177,7 @@ app.post('/bulk/triage', async (req, res) => {
    grid_monthly（日付の行×クラス・学年などの列で構成されたグリッド月間予定表）/ weekly_schedule（週間予定表）/ list_schedule（日付リスト形式の予定一覧）/ menu_monthly（給食などの月間献立表）/ single_flyer（1つの行事の案内・チラシ）/ shift_table（勤務シフト表）/ other（予定情報ではない）
 2. features: hasDateAxis（日付の軸があるか）/ hasEntityColumns（クラス・人などの列があるか）/ isSingleItem（単一の予定か）/ multiDocument（独立した複数の書類・掲示物が写っているか）の真偽値。
 3. year / month: タイトル・欄外から読み取れれば西暦の数値、読み取れなければ null。
-4. columns: 日付・曜日以外の列見出し（grid_monthly / shift_table のときのみ。表に書かれている表記のまま左から順に。読み取れない列は列挙しない。それ以外の書類タイプでは []）。
+4. columns: 日付・曜日以外の列見出し（grid_monthly / weekly_schedule / shift_table のときのみ。表に書かれている表記のまま左から順に。読み取れない列は列挙しない。それ以外の書類タイプでは []）。
 5. questions: ユーザーに確認すべき曖昧点。以下を厳守:
    - type は column_select / region_select / date_confirm / target_select / free のみ。最大3問。free は最大1問。
    - column_select: 対象列（クラス・人・組）の選択。columns を検出した場合は必ず1問生成し、options は columns と同一にする。multi は true。
@@ -2231,7 +2234,7 @@ app.post('/bulk/triage', async (req, res) => {
     // column_select は列検出結果と必ず整合させる（保存済み選択の自動適用のため）
     const colQ = questions.find(q => q.type === 'column_select');
     if (colQ && columns.length > 0) colQ.options = columns;
-    if (!colQ && columns.length > 0 && bulkIsGridRoute(docTypes)) {
+    if (!colQ && columns.length > 0 && bulkIsGridRoute(docTypes, true)) {
       questions.unshift({ id: 'columns', type: 'column_select', prompt: gridMsg(lang, 'qColumns'), options: columns, multi: true });
     }
 
@@ -2240,7 +2243,7 @@ app.post('/bulk/triage', async (req, res) => {
     const savedClasses = saved ? saved.filter(s => columns.includes(s)) : [];
 
     // 利用状況集計用（usage-stats.mjs が参照）。件数・enum値のみで予定内容は出力しない
-    console.log(`BULK TRIAGE: docTypes=${docTypes.join(',')} questions=${questions.slice(0, 3).map(q => q.type).join(',') || 'none'} likelyMode=${bulkIsGridRoute(docTypes) ? 'grid' : 'generic'}`);
+    console.log(`BULK TRIAGE: docTypes=${docTypes.join(',')} questions=${questions.slice(0, 3).map(q => q.type).join(',') || 'none'} likelyMode=${bulkIsGridRoute(docTypes, columns.length > 0) ? 'grid' : 'generic'}`);
 
     const f = parsed.features || {};
     res.json({
@@ -2257,7 +2260,7 @@ app.post('/bulk/triage', async (req, res) => {
       columns: columns,
       questions: questions.slice(0, 3),
       savedClasses: savedClasses,
-      likelyMode: bulkIsGridRoute(docTypes) ? 'grid' : 'generic'
+      likelyMode: bulkIsGridRoute(docTypes, columns.length > 0) ? 'grid' : 'generic'
     });
   } catch (e) {
     console.error('BULK TRIAGE ERROR:', e);
@@ -2318,7 +2321,8 @@ app.post('/bulk/extract', async (req, res) => {
 
     // グリッド抽出には対象列の選択が必須。gridが上位でも列回答がない場合
     // （列見出しを検出できなかった書類など）は最初から汎用ハンドラーに回す。
-    let mode = (bulkIsGridRoute(docTypes) && selectedClasses.length > 0) ? 'grid' : 'generic';
+    // weekly_schedule は「列回答あり」がそのまま日付×クラス列構造の証左になる。
+    let mode = (bulkIsGridRoute(docTypes, selectedClasses.length > 0) && selectedClasses.length > 0) ? 'grid' : 'generic';
     let result;
 
     if (mode === 'grid') {

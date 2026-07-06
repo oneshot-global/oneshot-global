@@ -44,7 +44,7 @@
 - UI上の名称を「月間予定表モード（β）」→「**一括登録モード（β）**」に改名（5言語）。既存ユーザー向けの案内ツールチップはスコープ外と判断（導線・クラス自動適用は不変のため）
 - 新エンドポイント（worker.js 末尾の BULK セクション）:
   - `POST /bulk/triage` … Stage1+2統合（書類タイプ判定＋年月＋列＋質問生成）を Gemini 1回で実施。ガードは /grid/columns と同一（回数消費なし）。docTypes enum: grid_monthly / weekly_schedule / list_schedule / menu_monthly / single_flyer / shift_table / other。docTypes が other 単独なら notSchedule エラー＋BANカウント
-  - `POST /bulk/extract` … 非対称ルーティング。**docTypes 上位2件に grid_monthly があり、かつ列回答あり**→ 既存3ラン多数決（`runGridExtraction`）、isGrid:false なら汎用へ内部フォールバック。それ以外→ 汎用1ラン（`runGenericExtraction`、temp 0、evidence要求＋曜日検算は日英対応）。ガード・回数消費なしは /grid/extract と同一
+  - `POST /bulk/extract` … 非対称ルーティング。**docTypes 上位2件に grid_monthly、または weekly_schedule（列が検出・選択されている場合）があり、かつ列回答あり**→ 既存3ラン多数決（`runGridExtraction`）、isGrid:false なら汎用へ内部フォールバック。それ以外→ 汎用1ラン（`runGenericExtraction`、temp 0、evidence要求＋曜日検算は日英対応）。ガード・回数消費なしは /grid/extract と同一。weekly拡張は2026-07-06（週間表が汎用に流れて notices・帯複製・多数決の防御を素通りしていた問題への対応。抽出プロンプトは「月間予定表」の文言のまま週間表でも機能することを実証済み）
 - **質問型ホワイトリスト**: column_select（クラス選択の一般化、gridClassPrefs 自動適用は従来どおり）/ region_select / **date_confirm（年・月どちらが欠けても「2026年7月」形式の年月一体候補・単一選択。フロントは先頭候補を既定選択）** / target_select / free（最大1問・選択肢必須）。全質問chip選択式・最大3問・1ターンのみ
 - リファクタ: 旧 /grid/extract のハンドラー本体を `runGridExtraction(filePart, opts)` に切り出し（**プロンプト・多数決ロジックはHEAD比でバイト同一**を機械検証済み。`extraPrompt` 引数は旧経路では常に空）。旧 /grid/columns・/grid/extract は旧フロントのキャッシュ対策で当面残す（**次々回のデプロイで削除予定**）
 - フロント（app.js）: gridDetectColumns→bulkTriage、renderClassStep→renderQuestionsStep（汎用chipレンダラー・質問ゼロなら readyTitle 表示で即抽出可）。レビュー/登録/undo は既存流用（汎用は className に target を載せる）。HTML 6ファイルは変更ゼロ
@@ -76,6 +76,9 @@
   - 同画像の上部には栄養素解説ポスター（登録対象外の情報）も写っており、multiDocument / region_select の実挙動確認にも使える素材（これも未実測）
 
 ## 保留中の既知issue（対応未定）
+
+- **日付印字のない週間表（曜日のみの表）**: grid/汎用どちらのルートでも日付を現在日時から推測することになり誤登録リスクがある（date_confirm は年月単位で「週」を確認できない）。実物の報告が来たら date_confirm の週対応を検討（2026-07-06記録）
+- **圧縮された行のズレは3ラン多数決でも完全には防げない**: kindergarten_schedule.png（意図的難所サンプル、Downloads内）で、極端に圧縮された火曜行の予定が2/3ランで同じ誤読に収束し high のまま隣接日に誤配置される事例を確認。多数決の既知のトレードオフで、weekly→gridルート拡張後も残る（notices・帯複製・部分的なlow顕在化は機能する）。印字が潰れた項目（洗車）の欠落も同様にルーティングでは救えない（2026-07-06記録）
 
 - **通常モード（/upload）のタイムアウト**: 2026-07-06 に**フロント25秒→90秒へ延長済み**（実測最大47.4秒の約2倍。Cloud Run側は600秒）。AbortError 時のページリロードは廃止し、専用文言 `timeout_msg`（「登録済みでないか確認してから再試行」×5言語）を表示する。**登録のべき等化は未対応**: 90秒でも切れた場合、サーバー側では登録が完走している可能性が理論上残る（根治には /upload のべき等キー導入が必要。頻度が実用上問題になったら検討）
 
