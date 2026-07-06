@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "PowerShell(python \"C:\\\\Users\\\\user\\\\Downloads\\\\gen_ics.py\")",
-      "PowerShell(python \"C:\\\\Users\\\\user\\\\Downloads\\\\gen_ics.py\"; echo \"===\"; $f=\"C:\\\\Users\\\\user\\\\Downloads\\\\レナ幼稚園_2026年6月_献立.ics\"; \\(Get-Content $f -Encoding UTF8 | Select-String \"SUMMARY\"\\) | Select-Object -First 3)"
-    ]
-  }
-}
