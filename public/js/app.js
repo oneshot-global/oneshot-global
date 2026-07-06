@@ -152,14 +152,12 @@
                 backLink: "← 通常モード（1画像1予定）に戻る",
                 fileBtn: "🗓️ 予定表・チラシを選択（画像・PDF）",
                 hint: "月間予定表・献立表・行事チラシなどの画像/PDFから予定を一括登録できます",
-                detecting: "クラス列を検出中...",
                 classTitle: "登録するクラスを選んでください（複数選択可）",
                 savedApplied: "前回選択したクラスを自動適用しました",
                 changeClass: "クラス選択を変更する",
                 readyTitle: "内容を確認しました。そのまま抽出できます",
-                genericExtracting: "予定を読み取っています...（1分ほどかかる場合があります）",
+                consensusNote: "複数回照合して精度を高めています",
                 extractBtn: "予定を抽出する",
-                extracting: "予定を抽出中...（最大1分ほどかかります）",
                 reviewTitle: "抽出結果を確認してください",
                 itemCount: "件",
                 unverifiedBadge: "未検証",
@@ -174,14 +172,6 @@
                 undoConfirm: "直前に一括登録した予定をすべてカレンダーから削除します。よろしいですか？（消費した利用回数は戻りません）",
                 undoing: "登録を取り消し中...",
                 undoneMsg: "件の予定を取り消しました",
-                step1: "書類の内容を確認しています",
-                step1Done: function(n) { return `${n}列を検出`; },
-                step2: "予定を読み取っています",
-                step2Sub: "見落としを防ぐため3回照合中",
-                step3: "結果を突き合わせています",
-                step3Sub: "一致しない箇所は「要確認」に振り分け",
-                step4: "カレンダー登録の準備をしています",
-                runLabels: ["1回目", "2回目", "3回目"],
                 leaveNote: "このまま画面を離れても大丈夫です",
                 noticeFmt: function(s, e) { const f = (d) => `${parseInt(d.slice(5,7),10)}月${parseInt(d.slice(8,10),10)}日`; return (s === e ? `${f(s)}ごろ` : `${f(s)}〜${f(e)}ごろ`) + '、内容をご確認ください'; },
                 dateFmt: function(d) { return `${parseInt(d.slice(5,7),10)}/${parseInt(d.slice(8,10),10)}`; }
@@ -269,14 +259,12 @@
                 backLink: "← Back to standard mode (one event per image)",
                 fileBtn: "🗓️ Select a schedule or flyer (image / PDF)",
                 hint: "Bulk-register events from monthly schedules, menu plans, event flyers and more (image / PDF)",
-                detecting: "Detecting class columns...",
                 classTitle: "Select the class column(s) to register (multiple allowed)",
                 savedApplied: "Your previous class selection was applied automatically",
                 changeClass: "Change class selection",
                 readyTitle: "Looks good — you can start extracting",
-                genericExtracting: "Reading events... (may take up to a minute)",
+                consensusNote: "Cross-checking multiple passes for accuracy",
                 extractBtn: "Extract events",
-                extracting: "Extracting events... (may take up to a minute)",
                 reviewTitle: "Review the extracted events",
                 itemCount: " items",
                 unverifiedBadge: "UNVERIFIED",
@@ -291,14 +279,6 @@
                 undoConfirm: "Delete all events you just registered from your calendar? (Used scans will not be refunded)",
                 undoing: "Undoing registration...",
                 undoneMsg: " events removed from calendar",
-                step1: "Checking the document",
-                step1Done: function(n) { return `${n} columns detected`; },
-                step2: "Reading events",
-                step2Sub: "Cross-checking with 3 passes to avoid misses",
-                step3: "Reconciling results",
-                step3Sub: "Mismatches are flagged for review",
-                step4: "Preparing calendar registration",
-                runLabels: ["Pass 1", "Pass 2", "Pass 3"],
                 leaveNote: "You can step away from this screen",
                 noticeFmt: function(s, e) { const f = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric'}); return 'Around ' + (s === e ? f(s) : `${f(s)} – ${f(e)}`) + ': an ambiguous arrow was found — please check the original schedule.'; },
                 dateFmt: function(d) { return new Date(d + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric'}); }
@@ -382,14 +362,12 @@
                 backLink: "← Zurück zum Standardmodus (ein Termin pro Bild)",
                 fileBtn: "🗓️ Plan oder Flyer auswählen (Bild / PDF)",
                 hint: "Termine aus Monatsplänen, Speiseplänen, Flyern u. a. gesammelt registrieren (Bild / PDF)",
-                detecting: "Klassenspalten werden erkannt...",
                 classTitle: "Klassenspalte(n) auswählen (Mehrfachauswahl möglich)",
                 savedApplied: "Ihre letzte Klassenauswahl wurde automatisch übernommen",
                 changeClass: "Klassenauswahl ändern",
                 readyTitle: "Alles klar – Sie können die Extraktion starten",
-                genericExtracting: "Termine werden gelesen... (bis zu einer Minute)",
+                consensusNote: "Mehrfacher Abgleich für höhere Genauigkeit",
                 extractBtn: "Termine extrahieren",
-                extracting: "Termine werden extrahiert... (bis zu einer Minute)",
                 reviewTitle: "Extrahierte Termine prüfen",
                 itemCount: " Einträge",
                 unverifiedBadge: "UNGEPRÜFT",
@@ -404,14 +382,6 @@
                 undoConfirm: "Alle soeben eingetragenen Termine aus dem Kalender löschen? (Verbrauchte Scans werden nicht erstattet)",
                 undoing: "Wird rückgängig gemacht...",
                 undoneMsg: " Termine aus dem Kalender entfernt",
-                step1: "Dokument wird geprüft",
-                step1Done: function(n) { return `${n} Spalten erkannt`; },
-                step2: "Termine werden gelesen",
-                step2Sub: "3-fache Prüfung, um nichts zu übersehen",
-                step3: "Ergebnisse werden abgeglichen",
-                step3Sub: "Abweichungen werden zur Prüfung markiert",
-                step4: "Kalendereintrag wird vorbereitet",
-                runLabels: ["1. Lauf", "2. Lauf", "3. Lauf"],
                 leaveNote: "Sie können diese Ansicht währenddessen verlassen",
                 noticeFmt: function(s, e) { const f = (d) => new Date(d + 'T00:00:00').toLocaleDateString('de-DE', {month:'short', day:'numeric'}); return 'Um ' + (s === e ? f(s) : `${f(s)} – ${f(e)}`) + ': ein mehrdeutiger Pfeil wurde gefunden — bitte prüfen Sie den Originalplan.'; },
                 dateFmt: function(d) { return new Date(d + 'T00:00:00').toLocaleDateString('de-DE', {month:'numeric', day:'numeric'}); }
@@ -487,14 +457,12 @@
                 backLink: "← Retour au mode standard (un événement par image)",
                 fileBtn: "🗓️ Choisir un planning ou prospectus (image / PDF)",
                 hint: "Enregistrez en une fois les événements de plannings mensuels, menus, prospectus, etc. (image / PDF)",
-                detecting: "Détection des colonnes de classe...",
                 classTitle: "Sélectionnez la ou les colonnes de classe (choix multiple)",
                 savedApplied: "Votre sélection précédente a été appliquée automatiquement",
                 changeClass: "Modifier la sélection de classes",
                 readyTitle: "C'est bon — vous pouvez lancer l'extraction",
-                genericExtracting: "Lecture des événements... (jusqu'à une minute)",
+                consensusNote: "Vérifications croisées répétées pour plus de précision",
                 extractBtn: "Extraire les événements",
-                extracting: "Extraction en cours... (jusqu'à une minute)",
                 reviewTitle: "Vérifiez les événements extraits",
                 itemCount: " éléments",
                 unverifiedBadge: "NON VÉRIFIÉ",
@@ -509,14 +477,6 @@
                 undoConfirm: "Supprimer de l'agenda tous les événements que vous venez d'ajouter ? (Les scans utilisés ne seront pas remboursés)",
                 undoing: "Annulation en cours...",
                 undoneMsg: " événements supprimés de l'agenda",
-                step1: "Vérification du document",
-                step1Done: function(n) { return `${n} colonnes détectées`; },
-                step2: "Lecture des événements",
-                step2Sub: "3 passes croisées pour ne rien manquer",
-                step3: "Rapprochement des résultats",
-                step3Sub: "Les écarts sont marqués « à vérifier »",
-                step4: "Préparation de l'ajout à l'agenda",
-                runLabels: ["Passe 1", "Passe 2", "Passe 3"],
                 leaveNote: "Vous pouvez quitter cet écran pendant ce temps",
                 noticeFmt: function(s, e) { const f = (d) => new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', {month:'short', day:'numeric'}); return 'Vers ' + (s === e ? f(s) : `${f(s)} – ${f(e)}`) + ' : une flèche ambiguë a été détectée — veuillez vérifier le planning original.'; },
                 dateFmt: function(d) { return new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', {month:'numeric', day:'numeric'}); }
@@ -592,14 +552,12 @@
                 backLink: "← Volver al modo estándar (un evento por imagen)",
                 fileBtn: "🗓️ Elegir horario o folleto (imagen / PDF)",
                 hint: "Registre de una vez eventos de horarios mensuales, menús, folletos, etc. (imagen / PDF)",
-                detecting: "Detectando columnas de clase...",
                 classTitle: "Seleccione la(s) columna(s) de clase (selección múltiple)",
                 savedApplied: "Se aplicó automáticamente su selección anterior",
                 changeClass: "Cambiar selección de clases",
                 readyTitle: "Listo: puede iniciar la extracción",
-                genericExtracting: "Leyendo eventos... (hasta un minuto)",
+                consensusNote: "Cotejo en varias pasadas para mayor precisión",
                 extractBtn: "Extraer eventos",
-                extracting: "Extrayendo eventos... (hasta un minuto)",
                 reviewTitle: "Revise los eventos extraídos",
                 itemCount: " elementos",
                 unverifiedBadge: "SIN VERIFICAR",
@@ -614,14 +572,6 @@
                 undoConfirm: "¿Eliminar del calendario todos los eventos que acaba de añadir? (Los escaneos usados no se reembolsan)",
                 undoing: "Deshaciendo...",
                 undoneMsg: " eventos eliminados del calendario",
-                step1: "Comprobando el documento",
-                step1Done: function(n) { return `${n} columnas detectadas`; },
-                step2: "Leyendo los eventos",
-                step2Sub: "3 pasadas cruzadas para no omitir nada",
-                step3: "Cotejando los resultados",
-                step3Sub: "Las discrepancias se marcan para revisar",
-                step4: "Preparando el registro en el calendario",
-                runLabels: ["Pasada 1", "Pasada 2", "Pasada 3"],
                 leaveNote: "Puede apartarse de esta pantalla mientras tanto",
                 noticeFmt: function(s, e) { const f = (d) => new Date(d + 'T00:00:00').toLocaleDateString('es-ES', {month:'short', day:'numeric'}); return 'Hacia ' + (s === e ? f(s) : `${f(s)} – ${f(e)}`) + ': se detectó una flecha ambigua — compruebe el horario original.'; },
                 dateFmt: function(d) { return new Date(d + 'T00:00:00').toLocaleDateString('es-ES', {month:'numeric', day:'numeric'}); }
@@ -1166,99 +1116,101 @@
         gridUndoBtn.style.display = 'none';
         gridArea.insertBefore(gridUndoBtn, gridBackLink.parentElement);
 
-        // ── 解析進捗の4ステップ表示（動的生成: HTML6ファイルを変更しないため） ──
-        const gridSteps = document.createElement('div');
-        gridSteps.id = 'gridSteps';
-        gridSteps.className = 'grid-steps';
-        gridSteps.style.display = 'none';
-        const stepDefs = [
-            { title: g.step1, sub: '' },
-            { title: g.step2, sub: g.step2Sub },
-            { title: g.step3, sub: g.step3Sub },
-            { title: g.step4, sub: '' }
-        ];
-        const stepEls = stepDefs.map((def, i) => {
-            const row = document.createElement('div');
-            row.className = 'grid-step';
-            const icon = document.createElement('span');
-            icon.className = 'grid-step-icon';
-            const body = document.createElement('div');
-            body.className = 'grid-step-body';
-            const title = document.createElement('div');
-            title.className = 'grid-step-title';
-            title.textContent = def.title;
-            const sub = document.createElement('div');
-            sub.className = 'grid-step-sub';
-            sub.textContent = def.sub;
-            body.appendChild(title);
-            body.appendChild(sub);
-            if (i === 1) {
-                // ステップ2のみ: 3並列抽出を表す3本の横並びバー
-                const bars = document.createElement('div');
-                bars.className = 'grid-step-bars';
-                bars.style.display = 'none';
-                g.runLabels.forEach((label, j) => {
-                    const run = document.createElement('div');
-                    run.className = 'grid-run';
-                    const lab = document.createElement('div');
-                    lab.className = 'grid-run-label';
-                    lab.textContent = label;
-                    const bar = document.createElement('div');
-                    bar.className = 'grid-run-bar';
-                    const fill = document.createElement('div');
-                    fill.className = 'grid-run-fill';
-                    fill.style.animationDelay = `${j * 0.7}s`;
-                    bar.appendChild(fill);
-                    run.appendChild(lab);
-                    run.appendChild(bar);
-                    bars.appendChild(run);
-                });
-                body.appendChild(bars);
-            }
-            row.appendChild(icon);
-            row.appendChild(body);
-            gridSteps.appendChild(row);
-            return row;
-        });
-        const stepsNote = document.createElement('p');
-        stepsNote.className = 'grid-steps-note';
-        stepsNote.textContent = g.leaveNote;
-        gridSteps.appendChild(stepsNote);
-        gridArea.insertBefore(gridSteps, gridClassStep);
+        // ── 解析進捗の%カウンター表示（動的生成: HTML6ファイルを変更しないため） ──
+        // 疑似進捗: 実測中央値 medianSec で 80% に達する指数漸近カーブ
+        // p = 90(1-e^(-t/τ))、τ = medianSec/ln(9)。カーブが寝てきたら
+        // +0.15%/秒 の微増を足して 97% を上限に動き続ける（凍結感の防止）。
+        // 100% は完了イベント（progressFinish）だけが到達させ、後退はしない。
+        const gridProgress = document.createElement('div');
+        gridProgress.id = 'gridProgress';
+        gridProgress.className = 'grid-progress';
+        gridProgress.style.display = 'none';
+        const progressCaption = document.createElement('div');
+        progressCaption.className = 'grid-progress-caption';
+        const progressPct = document.createElement('div');
+        progressPct.className = 'grid-progress-pct';
+        const progressBar = document.createElement('div');
+        progressBar.className = 'grid-progress-bar';
+        const progressFill = document.createElement('div');
+        progressFill.className = 'grid-progress-fill';
+        progressBar.appendChild(progressFill);
+        const progressNote = document.createElement('div');
+        progressNote.className = 'grid-progress-note';
+        gridProgress.appendChild(progressCaption);
+        gridProgress.appendChild(progressPct);
+        gridProgress.appendChild(progressBar);
+        gridProgress.appendChild(progressNote);
+        gridArea.insertBefore(gridProgress, gridClassStep);
 
-        function stepSet(i, state, subText) {
-            const row = stepEls[i];
-            row.classList.remove('active', 'done');
-            if (state) row.classList.add(state);
-            row.querySelector('.grid-step-icon').textContent = state === 'done' ? '✓' : '';
-            if (subText !== undefined) row.querySelector('.grid-step-sub').textContent = subText;
+        let progressTimer = null;
+        let progressValue = 0;
+
+        function progressRender() {
+            progressPct.textContent = Math.floor(progressValue) + '%';
+            progressFill.style.width = progressValue + '%';
         }
 
-        function stepBars(show, complete) {
-            const bars = stepEls[1].querySelector('.grid-step-bars');
-            bars.style.display = show ? 'flex' : 'none';
-            bars.querySelectorAll('.grid-run-fill').forEach(f => {
-                if (complete) {
-                    f.style.animation = 'none';
-                    f.style.width = '100%';
-                } else {
-                    // アニメーションをリスタートさせる
-                    f.style.animation = 'none';
-                    f.style.width = '';
-                    void f.offsetWidth;
-                    f.style.animation = '';
+        function progressStop() {
+            if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
+        }
+
+        // medianSec: フェーズの実測中央値（本番ログ由来。この時点で80%に達する）
+        // noteLines: %の下に出す静的な一文の配列（空なら非表示）
+        function progressStart(medianSec, noteLines) {
+            progressStop();
+            const tau = medianSec / Math.log(9);
+            const t0 = Date.now();
+            progressValue = 0;
+            progressCaption.textContent = t.analyzing;
+            const note = (noteLines || []).filter(Boolean).join('\n');
+            progressNote.textContent = note;
+            progressNote.style.display = note ? 'block' : 'none';
+            progressRender();
+            gridProgress.style.display = 'block';
+            progressTimer = setInterval(() => {
+                const sec = (Date.now() - t0) / 1000;
+                // 基本カーブ＋（カーブが88%相当で寝てきた後の）0.15%/秒の微増。上限97%
+                const crawl = Math.max(0, sec - 3.81 * tau) * 0.15;
+                const p = Math.min(97, 90 * (1 - Math.exp(-sec / tau)) + crawl);
+                if (p > progressValue) progressValue = p;
+                progressRender();
+            }, 100);
+        }
+
+        // 完了: 現在値→100%へ約250msでイージングし、少し見せてから隠して cb を呼ぶ
+        function progressFinish(cb) {
+            progressStop();
+            const from = progressValue;
+            const t0 = Date.now();
+            const anim = setInterval(() => {
+                const k = Math.min(1, (Date.now() - t0) / 250);
+                progressValue = from + (100 - from) * k;
+                progressRender();
+                if (k >= 1) {
+                    clearInterval(anim);
+                    setTimeout(() => {
+                        gridProgress.style.display = 'none';
+                        if (cb) cb();
+                    }, 150);
                 }
-            });
+            }, 40);
         }
 
-        function stepsReset() {
-            gridSteps.style.display = 'none';
-            for (let i = 0; i < stepEls.length; i++) stepSet(i, null, stepDefs[i].sub);
-            stepBars(false, false);
+        function progressReset() {
+            progressStop();
+            progressValue = 0;
+            gridProgress.style.display = 'none';
         }
 
-        function stepsShow() {
-            gridSteps.style.display = 'block';
+        // 進捗中はボタンだけ無効化する（青い線スキャン演出とローダーは
+        // 通常モード専用に戻し、一括登録モードでは%表示に一本化）
+        function gridSetBusyQuiet() {
+            status.className = '';
+            status.innerText = '';
+            gridFileBtn.disabled = true;
+            gridExtractBtn.disabled = true;
+            gridRegisterBtn.disabled = true;
+            gridUndoBtn.disabled = true;
         }
 
         // ラベル初期化（app.jsはbody末尾で読み込まれるためDOMは利用可能）
@@ -1290,7 +1242,7 @@
             gridEventList.innerHTML = '';
             gridLastBatchId = null;
             gridUndoBtn.style.display = 'none';
-            stepsReset();
+            progressReset();
         }
 
         gridModeLink.onclick = (e) => {
@@ -1428,18 +1380,17 @@
 
         function gridFileName() { return gridIsPdf ? 'schedule.pdf' : 'schedule.jpg'; }
 
-        // STEP 1: 書類タイプ判定＋確認質問の取得（進捗ステップ1に連動）
+        // STEP 1: 書類タイプ判定＋確認質問の取得（フェーズ1: %進捗）
         async function bulkTriage() {
-            stepsShow();
-            stepSet(0, 'active');
-            gridSetBusy('', false);
+            gridSetBusyQuiet();
+            progressStart(9.5, []); // 本番実測中央値 約9.5秒（triage 1呼び出し）
             try {
                 const fd = new FormData();
                 fd.append('file', gridBlob, gridFileName());
                 const res = await gridFetch(`/bulk/triage?cache-bust=${Date.now()}`, { method: 'POST', body: fd }, 60000);
                 const data = await res.json();
-                if (gridHandleAuthError(res, data)) { stepsReset(); return; }
-                if (!data.success) { stepsReset(); gridShowError(data.error); return; }
+                if (gridHandleAuthError(res, data)) { progressReset(); return; }
+                if (!data.success) { progressReset(); gridShowError(data.error); return; }
 
                 bulkDocTypes = data.docTypes || [];
                 bulkQuestions = (data.questions || []).filter(q => q && q.prompt && Array.isArray(q.options) && q.options.length > 0);
@@ -1458,11 +1409,10 @@
                     if (q.type === 'date_confirm' && bulkAnswers[i].length === 0) bulkAnswers[i] = [q.options[0]];
                 });
 
-                stepSet(0, 'done', gridColumns.length > 0 ? g.step1Done(gridColumns.length) : '');
                 status.innerText = '';
-                renderQuestionsStep();
+                progressFinish(() => renderQuestionsStep());
             } catch (err) {
-                stepsReset();
+                progressReset();
                 gridShowError(t.error_generic);
             } finally {
                 gridClearBusy();
@@ -1549,20 +1499,20 @@
 
         // STEP 2: 予定の構造化抽出（この時点では登録しない）
         // グリッド見込みなら進捗ステップ2〜4＋3本バー（3ラン多数決）、
-        // それ以外（献立・チラシ等の汎用1ラン）はローダー＋一文の簡略表示
+        // グリッド見込み/汎用とも同じ%進捗で統一（カーブの中央値定数と
+        // 静的な一文だけ likelyMode で切り替える）
         gridExtractBtn.onclick = async () => {
             if (!gridBlob) return;
             const hasColQ = bulkQuestions.some(q => q.type === 'column_select');
             if (bulkLikelyMode === 'grid' && hasColQ && gridSelected.length === 0) { gridShowError(g.selectClassFirst); return; }
             gridClassStep.style.display = 'none';
+            gridSetBusyQuiet();
             if (bulkLikelyMode === 'grid') {
-                gridSetBusy('', false);
-                stepsShow();
-                stepSet(1, 'active');
-                stepBars(true, false);
+                // 本番実測中央値 約45秒（3ラン多数決）。照合中の一文＋離脱OKの案内
+                progressStart(45, [g.consensusNote, g.leaveNote]);
             } else {
-                stepsReset();
-                gridSetBusy(g.genericExtracting);
+                // 本番実測中央値 約15秒（汎用1〜2呼び出し）
+                progressStart(15, [g.leaveNote]);
             }
             try {
                 const fd = new FormData();
@@ -1573,33 +1523,19 @@
                 fd.append('targetLang', localStorage.getItem('oneshot_target_lang') || 'auto');
                 const res = await gridFetch(`/bulk/extract?cache-bust=${Date.now()}`, { method: 'POST', body: fd }, 120000);
                 const data = await res.json();
-                if (gridHandleAuthError(res, data)) { stepsReset(); return; }
-                if (gridHandleLimit(data)) { stepsReset(); return; }
-                if (!data.success) { stepsReset(); gridShowError(data.error); return; }
+                if (gridHandleAuthError(res, data)) { progressReset(); return; }
+                if (gridHandleLimit(data)) { progressReset(); return; }
+                if (!data.success) { progressReset(); gridShowError(data.error); return; }
 
                 gridEvents = data.events || [];
                 bulkMode = data.mode === 'generic' ? 'generic' : 'grid';
                 if (data.selectedClasses && data.selectedClasses.length > 0) gridSelected = data.selectedClasses;
 
-                if (bulkLikelyMode === 'grid' && bulkMode === 'grid') {
-                    // 3並列抽出が完了 → バーを100%にしてステップ2完了
-                    stepBars(true, true);
-                    stepSet(1, 'done');
-                    // マージ（突き合わせ）はサーバー側で応答直前に実施済み → ステップ3を短く表示
-                    stepSet(2, 'active');
-                    await new Promise(r => setTimeout(r, 500));
-                    stepSet(2, 'done');
-                    stepSet(3, 'active');
-                    await new Promise(r => setTimeout(r, 400));
-                    stepSet(3, 'done');
-                    await new Promise(r => setTimeout(r, 250));
-                }
-                stepsReset();
-
                 status.innerText = '';
-                renderReview(data.notices || []);
+                const notices = data.notices || [];
+                progressFinish(() => renderReview(notices));
             } catch (err) {
-                stepsReset();
+                progressReset();
                 gridShowError(t.error_generic);
             } finally {
                 gridClearBusy();
