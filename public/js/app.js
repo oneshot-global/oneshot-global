@@ -24,7 +24,6 @@
           loginArea = document.getElementById('loginArea'),
           status = document.getElementById('status'),
           preview = document.getElementById('preview'),
-          loader = document.getElementById('loader'),
           subTitle = document.getElementById('t-subTitle'),
           mainCard = document.getElementById('mainCard'),
           dropZone = document.getElementById('dropZone'),
@@ -929,10 +928,102 @@
         });
     }
 
+    // ── 解析進捗の%カウンター表示（通常モード・一括登録モード共通） ──
+    // 疑似進捗: 実測中央値 medianSec で 80% に達する指数漸近カーブ
+    // p = 90(1-e^(-t/τ))、τ = medianSec/ln(9)。カーブが寝てきたら
+    // +0.15%/秒 の微増を足して 97% を上限に動き続ける（凍結感の防止）。
+    // 100% は完了イベント（progressFinish）だけが到達させ、後退はしない。
+    // 単一インスタンスを opts.mount で使う場所へ移動する（両モードは同時に走らない）。
+    const gridProgress = document.createElement('div');
+    gridProgress.id = 'gridProgress';
+    gridProgress.className = 'grid-progress';
+    gridProgress.style.display = 'none';
+    const progressCaption = document.createElement('div');
+    progressCaption.className = 'grid-progress-caption';
+    const progressPct = document.createElement('div');
+    progressPct.className = 'grid-progress-pct';
+    const progressBar = document.createElement('div');
+    progressBar.className = 'grid-progress-bar';
+    const progressFill = document.createElement('div');
+    progressFill.className = 'grid-progress-fill';
+    progressBar.appendChild(progressFill);
+    const progressNote = document.createElement('div');
+    progressNote.className = 'grid-progress-note';
+    gridProgress.appendChild(progressCaption);
+    gridProgress.appendChild(progressPct);
+    gridProgress.appendChild(progressBar);
+    gridProgress.appendChild(progressNote);
+    status.parentNode.insertBefore(gridProgress, status);
+
+    let progressTimer = null;
+    let progressValue = 0;
+
+    function progressRender() {
+        progressPct.textContent = Math.floor(progressValue) + '%';
+        progressFill.style.width = progressValue + '%';
+    }
+
+    function progressStop() {
+        if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
+    }
+
+    // medianSec: フェーズの実測中央値（本番ログ由来。この時点で80%に達する）
+    // opts.caption: キャプション（省略時は「解析中...」）
+    // opts.notes:   %の下に出す静的な一文の配列（空なら非表示）
+    // opts.mount:   この要素の直前に進捗パネルを移動して表示（省略時は現在位置）
+    function progressStart(medianSec, opts = {}) {
+        progressStop();
+        if (opts.mount && opts.mount.parentNode) {
+            opts.mount.parentNode.insertBefore(gridProgress, opts.mount);
+        }
+        const tau = medianSec / Math.log(9);
+        const t0 = Date.now();
+        progressValue = 0;
+        progressCaption.textContent = opts.caption || t.analyzing;
+        const note = (opts.notes || []).filter(Boolean).join('\n');
+        progressNote.textContent = note;
+        progressNote.style.display = note ? 'block' : 'none';
+        progressRender();
+        gridProgress.style.display = 'block';
+        progressTimer = setInterval(() => {
+            const sec = (Date.now() - t0) / 1000;
+            // 基本カーブ＋（カーブが88%相当で寝てきた後の）0.15%/秒の微増。上限97%
+            const crawl = Math.max(0, sec - 3.81 * tau) * 0.15;
+            const p = Math.min(97, 90 * (1 - Math.exp(-sec / tau)) + crawl);
+            if (p > progressValue) progressValue = p;
+            progressRender();
+        }, 100);
+    }
+
+    // 完了: 現在値→100%へ約250msでイージングし、少し見せてから隠して cb を呼ぶ
+    function progressFinish(cb) {
+        progressStop();
+        const from = progressValue;
+        const t0 = Date.now();
+        const anim = setInterval(() => {
+            const k = Math.min(1, (Date.now() - t0) / 250);
+            progressValue = from + (100 - from) * k;
+            progressRender();
+            if (k >= 1) {
+                clearInterval(anim);
+                setTimeout(() => {
+                    gridProgress.style.display = 'none';
+                    if (cb) cb();
+                }, 150);
+            }
+        }, 40);
+    }
+
+    function progressReset() {
+        progressStop();
+        progressValue = 0;
+        gridProgress.style.display = 'none';
+    }
+
     async function startUploadFlow() {
-        mainCard.classList.add('analyzing');
-        loader.style.display = 'block';
-        status.innerText = t.analyzing;
+        // 画像はOCR込みで長め、テキスト貼り付けはOCRなしで短め（中央値は本番実測由来）
+        progressStart(resizedBlob ? 11.5 : 6, { caption: t.analyzing, mount: status });
+        status.innerText = "";
         currentMonthPath = "";
         uploadBtn.style.display = 'none';
         registrationResult.style.display = 'none';
@@ -967,8 +1058,7 @@
             if (isAuthError) {
                 localStorage.removeItem('oneshot_subId');
                 localStorage.removeItem('oneshot_premium');
-                mainCard.classList.remove('analyzing');
-                loader.style.display = 'none';
+                progressReset();
                 status.className = 'error-msg';
                 status.innerHTML = `${t.reauth_msg || t.error_generic}<br><a href="/auth/google?force=1" style="display:inline-block;margin-top:8px;padding:8px 16px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:12px;font-weight:bold;">${t.reauth_btn}</a>`;
                 return;
@@ -976,8 +1066,7 @@
             
             if (data.limitReached && data.premiumLimit) {
                 // 既にプレミアム: アップグレードモーダルは出さず案内のみ（二重課金防止）
-                mainCard.classList.remove('analyzing');
-                loader.style.display = 'none';
+                progressReset();
                 status.className = '';
                 status.innerHTML = `<small style="color:#94a3b8">${t.premium_limit_msg(data.nextResetDate)}</small>`;
                 return;
@@ -995,58 +1084,58 @@
                     modalAgreement.innerText = t.modal_agreement;
                     modalAgreement.style.color = "#64748b";
                 }
-                mainCard.classList.remove('analyzing');
-                loader.style.display = 'none';
+                progressReset();
                 status.innerText = "";
                 return;
             }
-            
+
             if (data.success) {
                 if (data.targetMonth) currentMonthPath = data.targetMonth;
                 if (data.isPremium) {
                     localStorage.setItem('oneshot_premium', 'true');
                     if (planLink) planLink.style.display = 'none';
                 }
-                
+
                 const prefix = data.isPremium ? 'PREMIUM ' : '';
                 const resetInfo = data.nextResetDate ? ` / ${t.nextReset}: ${data.nextResetDate}` : '';
                 const sId = localStorage.getItem('oneshot_subId');
                 const portalUrl = sId ? `/portal?subId=${sId}` : '/portal';
                 const portalLink = data.isPremium ? ` <a href="${portalUrl}" target="_blank" style="color:#64748b; text-decoration:underline; margin-left:8px; pointer-events: auto !important; position: relative; z-index: 10000;">[${t.portal}]</a>` : '';
-                
+
                 const countText = `${prefix}(${t.remaining} ${data.count} ${t.times}${resetInfo})${portalLink}`;
-                
-                status.innerHTML = `<span class="success-msg">${t.allSuccess}</span><br><small style="color:#94a3b8">${countText}</small>`;
-                
-                if (data.extracted) {
-                    resTitle.innerText = data.extracted.summary || "-";
-                    const startStr = data.extracted.start?.dateTime || data.extracted.start?.date || "-";
-                    resDateTime.innerText = startStr.replace('T', ' ').substring(0, 16);
-                    
-                    if (data.extracted.location) {
-                        resLocation.innerText = data.extracted.location;
-                        resLocationBox.style.display = 'block';
-                    } else {
-                        resLocationBox.style.display = 'none';
+
+                progressFinish(() => {
+                    status.innerHTML = `<span class="success-msg">${t.allSuccess}</span><br><small style="color:#94a3b8">${countText}</small>`;
+
+                    if (data.extracted) {
+                        resTitle.innerText = data.extracted.summary || "-";
+                        const startStr = data.extracted.start?.dateTime || data.extracted.start?.date || "-";
+                        resDateTime.innerText = startStr.replace('T', ' ').substring(0, 16);
+
+                        if (data.extracted.location) {
+                            resLocation.innerText = data.extracted.location;
+                            resLocationBox.style.display = 'block';
+                        } else {
+                            resLocationBox.style.display = 'none';
+                        }
+                        registrationResult.style.display = 'block';
                     }
-                    registrationResult.style.display = 'block';
-                }
-                
-                checkBtn.style.display = 'block';
+
+                    checkBtn.style.display = 'block';
+                });
             } else {
+                progressReset();
                 status.className = 'error-msg';
                 status.innerText = data.error || t.error_generic;
             }
-        } catch (err) { 
+        } catch (err) {
+            progressReset();
             status.className = 'error-msg';
             status.innerHTML = `${t.error_generic}<br><a href="/auth/google" style="color:#64748b; text-decoration:underline; font-size:11px;">[${t.reauth_btn}]</a>`;
-            
+
             if (err.name === 'AbortError') {
                 window.location.reload();
             }
-        } finally {
-            mainCard.classList.remove('analyzing');
-            loader.style.display = 'none';
         }
     }
 
@@ -1116,94 +1205,7 @@
         gridUndoBtn.style.display = 'none';
         gridArea.insertBefore(gridUndoBtn, gridBackLink.parentElement);
 
-        // ── 解析進捗の%カウンター表示（動的生成: HTML6ファイルを変更しないため） ──
-        // 疑似進捗: 実測中央値 medianSec で 80% に達する指数漸近カーブ
-        // p = 90(1-e^(-t/τ))、τ = medianSec/ln(9)。カーブが寝てきたら
-        // +0.15%/秒 の微増を足して 97% を上限に動き続ける（凍結感の防止）。
-        // 100% は完了イベント（progressFinish）だけが到達させ、後退はしない。
-        const gridProgress = document.createElement('div');
-        gridProgress.id = 'gridProgress';
-        gridProgress.className = 'grid-progress';
-        gridProgress.style.display = 'none';
-        const progressCaption = document.createElement('div');
-        progressCaption.className = 'grid-progress-caption';
-        const progressPct = document.createElement('div');
-        progressPct.className = 'grid-progress-pct';
-        const progressBar = document.createElement('div');
-        progressBar.className = 'grid-progress-bar';
-        const progressFill = document.createElement('div');
-        progressFill.className = 'grid-progress-fill';
-        progressBar.appendChild(progressFill);
-        const progressNote = document.createElement('div');
-        progressNote.className = 'grid-progress-note';
-        gridProgress.appendChild(progressCaption);
-        gridProgress.appendChild(progressPct);
-        gridProgress.appendChild(progressBar);
-        gridProgress.appendChild(progressNote);
-        gridArea.insertBefore(gridProgress, gridClassStep);
-
-        let progressTimer = null;
-        let progressValue = 0;
-
-        function progressRender() {
-            progressPct.textContent = Math.floor(progressValue) + '%';
-            progressFill.style.width = progressValue + '%';
-        }
-
-        function progressStop() {
-            if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
-        }
-
-        // medianSec: フェーズの実測中央値（本番ログ由来。この時点で80%に達する）
-        // noteLines: %の下に出す静的な一文の配列（空なら非表示）
-        function progressStart(medianSec, noteLines) {
-            progressStop();
-            const tau = medianSec / Math.log(9);
-            const t0 = Date.now();
-            progressValue = 0;
-            progressCaption.textContent = t.analyzing;
-            const note = (noteLines || []).filter(Boolean).join('\n');
-            progressNote.textContent = note;
-            progressNote.style.display = note ? 'block' : 'none';
-            progressRender();
-            gridProgress.style.display = 'block';
-            progressTimer = setInterval(() => {
-                const sec = (Date.now() - t0) / 1000;
-                // 基本カーブ＋（カーブが88%相当で寝てきた後の）0.15%/秒の微増。上限97%
-                const crawl = Math.max(0, sec - 3.81 * tau) * 0.15;
-                const p = Math.min(97, 90 * (1 - Math.exp(-sec / tau)) + crawl);
-                if (p > progressValue) progressValue = p;
-                progressRender();
-            }, 100);
-        }
-
-        // 完了: 現在値→100%へ約250msでイージングし、少し見せてから隠して cb を呼ぶ
-        function progressFinish(cb) {
-            progressStop();
-            const from = progressValue;
-            const t0 = Date.now();
-            const anim = setInterval(() => {
-                const k = Math.min(1, (Date.now() - t0) / 250);
-                progressValue = from + (100 - from) * k;
-                progressRender();
-                if (k >= 1) {
-                    clearInterval(anim);
-                    setTimeout(() => {
-                        gridProgress.style.display = 'none';
-                        if (cb) cb();
-                    }, 150);
-                }
-            }, 40);
-        }
-
-        function progressReset() {
-            progressStop();
-            progressValue = 0;
-            gridProgress.style.display = 'none';
-        }
-
-        // 進捗中はボタンだけ無効化する（青い線スキャン演出とローダーは
-        // 通常モード専用に戻し、一括登録モードでは%表示に一本化）
+        // 進捗中はボタンだけ無効化する（進捗表示は共通%モジュール側が担当）
         function gridSetBusyQuiet() {
             status.className = '';
             status.innerText = '';
@@ -1266,20 +1268,7 @@
             status.className = '';
         };
 
-        function gridSetBusy(msg, showLoader = true) {
-            mainCard.classList.add('analyzing');
-            loader.style.display = showLoader ? 'block' : 'none';
-            status.className = '';
-            status.innerText = msg;
-            gridFileBtn.disabled = true;
-            gridExtractBtn.disabled = true;
-            gridRegisterBtn.disabled = true;
-            gridUndoBtn.disabled = true;
-        }
-
         function gridClearBusy() {
-            mainCard.classList.remove('analyzing');
-            loader.style.display = 'none';
             gridFileBtn.disabled = false;
             gridExtractBtn.disabled = false;
             gridRegisterBtn.disabled = false;
@@ -1383,7 +1372,7 @@
         // STEP 1: 書類タイプ判定＋確認質問の取得（フェーズ1: %進捗）
         async function bulkTriage() {
             gridSetBusyQuiet();
-            progressStart(9.5, []); // 本番実測中央値 約9.5秒（triage 1呼び出し）
+            progressStart(9.5, { mount: gridClassStep }); // 本番実測中央値 約9.5秒（triage 1呼び出し）
             try {
                 const fd = new FormData();
                 fd.append('file', gridBlob, gridFileName());
@@ -1509,10 +1498,10 @@
             gridSetBusyQuiet();
             if (bulkLikelyMode === 'grid') {
                 // 本番実測中央値 約45秒（3ラン多数決）。照合中の一文＋離脱OKの案内
-                progressStart(45, [g.consensusNote, g.leaveNote]);
+                progressStart(45, { mount: gridClassStep, notes: [g.consensusNote, g.leaveNote] });
             } else {
                 // 本番実測中央値 約15秒（汎用1〜2呼び出し）
-                progressStart(15, [g.leaveNote]);
+                progressStart(15, { mount: gridClassStep, notes: [g.leaveNote] });
             }
             try {
                 const fd = new FormData();
@@ -1614,7 +1603,9 @@
             });
             if (chosen.length === 0) { gridShowError(g.noneSelected); return; }
 
-            gridSetBusy(g.registering);
+            gridSetBusyQuiet();
+            // 本番実測中央値 約15秒（カレンダーAPIへ1件ずつ登録するため件数依存）
+            progressStart(15, { mount: gridClassStep, caption: g.registering });
             try {
                 const res = await gridFetch(`/grid/register?cache-bust=${Date.now()}`, {
                     method: 'POST',
@@ -1629,31 +1620,34 @@
                     })
                 }, 180000);
                 const data = await res.json();
-                if (gridHandleAuthError(res, data)) return;
-                if (gridHandleLimit(data)) return;
-                if (!data.success) { gridShowError(data.error); return; }
+                if (gridHandleAuthError(res, data)) { progressReset(); return; }
+                if (gridHandleLimit(data)) { progressReset(); return; }
+                if (!data.success) { progressReset(); gridShowError(data.error); return; }
 
-                if (data.targetMonth) currentMonthPath = data.targetMonth;
-                if (data.isPremium) {
-                    localStorage.setItem('oneshot_premium', 'true');
-                    if (planLink) planLink.style.display = 'none';
-                }
-                const prefix = data.isPremium ? 'PREMIUM ' : '';
-                const resetInfo = data.nextResetDate ? ` / ${t.nextReset}: ${data.nextResetDate}` : '';
-                status.className = '';
-                status.innerHTML = `<span class="success-msg">${data.registered}${g.registeredMsg}</span><br><small style="color:#94a3b8">${prefix}(${t.remaining} ${data.count} ${t.times}${resetInfo})</small>`;
+                progressFinish(() => {
+                    if (data.targetMonth) currentMonthPath = data.targetMonth;
+                    if (data.isPremium) {
+                        localStorage.setItem('oneshot_premium', 'true');
+                        if (planLink) planLink.style.display = 'none';
+                    }
+                    const prefix = data.isPremium ? 'PREMIUM ' : '';
+                    const resetInfo = data.nextResetDate ? ` / ${t.nextReset}: ${data.nextResetDate}` : '';
+                    status.className = '';
+                    status.innerHTML = `<span class="success-msg">${data.registered}${g.registeredMsg}</span><br><small style="color:#94a3b8">${prefix}(${t.remaining} ${data.count} ${t.times}${resetInfo})</small>`;
 
-                gridReviewStep.style.display = 'none';
-                gridNotices.innerHTML = '';
-                gridEventList.innerHTML = '';
-                gridEvents = [];
-                gridBlob = null;
-                checkBtn.style.display = 'block';
+                    gridReviewStep.style.display = 'none';
+                    gridNotices.innerHTML = '';
+                    gridEventList.innerHTML = '';
+                    gridEvents = [];
+                    gridBlob = null;
+                    checkBtn.style.display = 'block';
 
-                // 取り消しボタンの表示（batchIdが返らなかった場合は出さない）
-                gridLastBatchId = data.batchId || null;
-                gridUndoBtn.style.display = gridLastBatchId ? 'block' : 'none';
+                    // 取り消しボタンの表示（batchIdが返らなかった場合は出さない）
+                    gridLastBatchId = data.batchId || null;
+                    gridUndoBtn.style.display = gridLastBatchId ? 'block' : 'none';
+                });
             } catch (err) {
+                progressReset();
                 gridShowError(t.error_generic);
             } finally {
                 gridClearBusy();
@@ -1664,7 +1658,9 @@
         gridUndoBtn.onclick = async () => {
             if (!gridLastBatchId) return;
             if (!window.confirm(g.undoConfirm)) return;
-            gridSetBusy(g.undoing);
+            gridSetBusyQuiet();
+            // 本番実測中央値 約11秒（登録と同じく件数依存）
+            progressStart(11, { mount: gridClassStep, caption: g.undoing });
             try {
                 const res = await gridFetch(`/grid/undo?cache-bust=${Date.now()}`, {
                     method: 'POST',
@@ -1672,15 +1668,18 @@
                     body: JSON.stringify({ batchId: gridLastBatchId })
                 }, 120000);
                 const data = await res.json();
-                if (gridHandleAuthError(res, data)) return;
-                if (!data.success) { gridShowError(data.error); return; }
+                if (gridHandleAuthError(res, data)) { progressReset(); return; }
+                if (!data.success) { progressReset(); gridShowError(data.error); return; }
 
-                gridLastBatchId = null;
-                gridUndoBtn.style.display = 'none';
-                checkBtn.style.display = 'none';
-                status.className = '';
-                status.innerHTML = `<span class="success-msg">${data.deleted}${g.undoneMsg}</span>`;
+                progressFinish(() => {
+                    gridLastBatchId = null;
+                    gridUndoBtn.style.display = 'none';
+                    checkBtn.style.display = 'none';
+                    status.className = '';
+                    status.innerHTML = `<span class="success-msg">${data.deleted}${g.undoneMsg}</span>`;
+                });
             } catch (err) {
+                progressReset();
                 gridShowError(t.error_generic);
             } finally {
                 gridClearBusy();
