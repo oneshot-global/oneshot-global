@@ -78,6 +78,7 @@
             labelDate: "日時",
             labelLocation: "場所",
             guide_html: `
+                <p style="margin-bottom: 15px; padding: 10px; background: #f1f5f9; border-radius: 8px;">📋 ある程度の予定表フォーマットに対応していますが、レイアウトによっては正しく読み取れない場合があります。うまくいかない表があれば、<a href="mailto:a463311a@gmail.com?subject=${encodeURIComponent('読み取れない予定表の報告')}" style="color:#2563eb; text-decoration:underline;">サポート窓口（メール）</a>から画像をお送りください。対応を検討いたします。</p>
                 <p style="font-weight: bold; border-left: 4px solid #007aff; padding-left: 10px; margin: 15px 0 10px;">■ 使い方</p>
                 <ul style="padding-left: 20px; margin-bottom: 15px;">
                     <li><strong>1枚につき1予定:</strong> 画像から1つの予定を抽出しカレンダーへ登録します。</li>
@@ -212,6 +213,7 @@
             labelDate: "DATE & TIME",
             labelLocation: "LOCATION",
             guide_html: `
+                <p style="margin-bottom: 15px; padding: 10px; background: #f1f5f9; border-radius: 8px;">📋 A wide range of schedule formats are supported, but some layouts may not be read correctly. If a schedule doesn't work, please send the image to our <a href="mailto:a463311a@gmail.com?subject=${encodeURIComponent('Report: schedule image that could not be read')}" style="color:#2563eb; text-decoration:underline;">support desk (email)</a>. We'll consider adding support for it.</p>
                 <p><strong>■ How to use</strong><br>・Scan one event per image. It will be automatically added to your Google Calendar.<br>・PC supports Drag & Drop and Ctrl+V (Both Image and Text).<br>・<strong>Quick Sync:</strong> Double-tap a color dot when text is copied to start analysis immediately with that color.</p>
                 <p><strong>■ Output Language (New!)</strong></p>
                 <div class="lang-selector-container" style="display:flex; flex-wrap:wrap; gap:8px; padding-left:10px; margin-bottom:15px;">
@@ -328,6 +330,7 @@
             labelDate: "DATUM & ZEIT",
             labelLocation: "ORT",
             guide_html: `
+                <p style="margin-bottom: 15px; padding: 10px; background: #f1f5f9; border-radius: 8px;">📋 Viele Planformate werden unterstützt, aber je nach Layout kann das Lesen fehlschlagen. Wenn ein Plan nicht richtig gelesen wird, senden Sie uns das Bild bitte über den <a href="mailto:a463311a@gmail.com?subject=${encodeURIComponent('Meldung: nicht lesbarer Terminplan')}" style="color:#2563eb; text-decoration:underline;">Support (E-Mail)</a> – wir prüfen eine Unterstützung.</p>
                 <p style="font-weight: bold; border-left: 4px solid #007aff; padding-left: 10px; margin: 15px 0 10px;">■ Nutzung</p>
                 <ul style="padding-left: 20px; margin-bottom: 15px;">
                     <li><strong>Ein Ereignis pro Bild:</strong> Extrahiert ein einzelnes Ereignis aus einem Bild und registriert es im Kalender.</li>
@@ -440,6 +443,7 @@
             labelDate: "DATE & HEURE",
             labelLocation: "LIEU",
             guide_html: `
+                <p style="margin-bottom: 15px; padding: 10px; background: #f1f5f9; border-radius: 8px;">📋 De nombreux formats de planning sont pris en charge, mais certaines mises en page peuvent être mal lues. Si un planning ne fonctionne pas, envoyez-nous l'image via le <a href="mailto:a463311a@gmail.com?subject=${encodeURIComponent('Signalement : planning illisible')}" style="color:#2563eb; text-decoration:underline;">support (e-mail)</a> — nous étudierons sa prise en charge.</p>
                 <p style="font-weight: bold; border-left: 4px solid #007aff; padding-left: 10px; margin: 15px 0 10px;">■ Utilisation</p>
                 <ul style="padding-left: 20px; margin-bottom: 15px;">
                     <li><strong>Un événement par image:</strong> Extrait un seul événement et l'ajoute à votre Google Agenda.</li>
@@ -544,6 +548,7 @@
             labelDate: "FECHA Y HORA",
             labelLocation: "UBICACIÓN",
             guide_html: `
+                <p style="margin-bottom: 15px; padding: 10px; background: #f1f5f9; border-radius: 8px;">📋 Se admiten muchos formatos de horario, pero según el diseño la lectura puede fallar. Si un horario no funciona, envíenos la imagen a través del <a href="mailto:a463311a@gmail.com?subject=${encodeURIComponent('Informe: horario que no se pudo leer')}" style="color:#2563eb; text-decoration:underline;">soporte (correo)</a>; estudiaremos su compatibilidad.</p>
                 <p style="font-weight: bold; border-left: 4px solid #007aff; padding-left: 10px; margin: 15px 0 10px;">■ Uso</p>
                 <ul style="padding-left: 20px; margin-bottom: 15px;">
                     <li><strong>Un evento por imagen:</strong> Extrae un evento y lo añade a Google Calendar automáticamente.</li>
