@@ -1335,10 +1335,18 @@ async function prepareGridPart(buffer, mimeType) {
   return { inlineData: { mimeType: 'image/jpeg', data: processed.toString('base64') } };
 }
 
-async function gridGenerateJson(filePart, prompt, temperature = 0) {
+// thinking: Gemini 2.5 Flash はVertex AI既定で動的thinkingがON（可視出力の
+// 数倍のthinkingトークンが「Thinking Text Output」として別課金される）。
+// 判定タスク（triage: 書類分類・列検出・質問生成）は空間推論の要求が薄く
+// thinking なしでも実用上劣化しないため、triage 呼び出し（thinking=false）
+// のみ thinkingBudget:0 で無効化する。グリッド3ラン・汎用抽出は精度優先で
+// thinking=true（既定）のまま。SDK型定義に無いフィールドだがAPIには透過される
+async function gridGenerateJson(filePart, prompt, temperature = 0, thinking = true) {
+  const generationConfig = { responseMimeType: 'application/json', temperature: temperature };
+  if (!thinking) generationConfig.thinkingConfig = { thinkingBudget: 0 };
   const aiRes = await generativeModel.generateContent({
     contents: [{ role: 'user', parts: [filePart, { text: prompt }] }],
-    generationConfig: { responseMimeType: 'application/json', temperature: temperature }
+    generationConfig: generationConfig
   });
   const rawText = aiRes.response.candidates[0].content.parts[0].text;
   return JSON.parse(rawText.replace(/```json|```/g, '').trim());
@@ -2112,7 +2120,7 @@ function bulkAnswerLines(answers, { excludeColumns = false } = {}) {
 
 // 汎用抽出（1ラン・temperature 0）。グリッド以外の予定表・献立表・チラシ・
 // シフト表向け。多数決の保険がない代わりに evidence（根拠の書き写し）を
-// 要求して捏造を抑止し、low はレビューUI（デフォルトOFF）が防波堤になる。
+// 要求して捏造を抑止し、low はレビューUIの「未検証」バッジで確認を促す。
 async function runGenericExtraction(filePart, opts) {
   const { userTimeZone, targetLang, docTypes = [], answerLines = [] } = opts;
   const langInstruction = gridLangInstruction(targetLang);

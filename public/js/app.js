@@ -161,7 +161,7 @@
                 reviewTitle: "抽出結果を確認してください",
                 itemCount: "件",
                 unverifiedBadge: "未検証",
-                unverifiedHint: "⚠️ 黄色の「未検証」項目は読み取りに自信がありません。元の予定表と見比べて、正しい場合のみチェックを入れてください。",
+                unverifiedHint: "⚠️ 黄色の「未検証」項目は読み取りに自信がありません。元の予定表と見比べて、間違っている場合はチェックを外してください。",
                 registerBtn: "チェックした予定をカレンダーに登録",
                 registering: "カレンダーに登録中...",
                 registeredMsg: "件の予定を登録しました 🚀",
@@ -269,7 +269,7 @@
                 reviewTitle: "Review the extracted events",
                 itemCount: " items",
                 unverifiedBadge: "UNVERIFIED",
-                unverifiedHint: "⚠️ Yellow 'unverified' items could not be read with confidence. Compare with the original schedule and tick them only if correct.",
+                unverifiedHint: "⚠️ Yellow 'unverified' items could not be read with confidence. Compare with the original schedule and untick any that are wrong.",
                 registerBtn: "Add checked events to Calendar",
                 registering: "Adding to Calendar...",
                 registeredMsg: " events added 🚀",
@@ -373,7 +373,7 @@
                 reviewTitle: "Extrahierte Termine prüfen",
                 itemCount: " Einträge",
                 unverifiedBadge: "UNGEPRÜFT",
-                unverifiedHint: "⚠️ Gelbe 'ungeprüfte' Einträge konnten nicht sicher gelesen werden. Bitte mit dem Original vergleichen und nur ankreuzen, wenn korrekt.",
+                unverifiedHint: "⚠️ Gelbe 'ungeprüfte' Einträge konnten nicht sicher gelesen werden. Bitte mit dem Original vergleichen und Falsches abwählen.",
                 registerBtn: "Angekreuzte Termine in den Kalender eintragen",
                 registering: "Wird in den Kalender eingetragen...",
                 registeredMsg: " Termine eingetragen 🚀",
@@ -469,7 +469,7 @@
                 reviewTitle: "Vérifiez les événements extraits",
                 itemCount: " éléments",
                 unverifiedBadge: "NON VÉRIFIÉ",
-                unverifiedHint: "⚠️ Les éléments jaunes « non vérifiés » n'ont pas pu être lus avec certitude. Comparez avec le planning original et cochez-les uniquement s'ils sont corrects.",
+                unverifiedHint: "⚠️ Les éléments jaunes « non vérifiés » n'ont pas pu être lus avec certitude. Comparez avec le planning original et décochez ceux qui sont erronés.",
                 registerBtn: "Ajouter les événements cochés à l'agenda",
                 registering: "Ajout à l'agenda...",
                 registeredMsg: " événements ajoutés 🚀",
@@ -565,7 +565,7 @@
                 reviewTitle: "Revise los eventos extraídos",
                 itemCount: " elementos",
                 unverifiedBadge: "SIN VERIFICAR",
-                unverifiedHint: "⚠️ Los elementos amarillos «sin verificar» no se pudieron leer con seguridad. Compárelos con el horario original y márquelos solo si son correctos.",
+                unverifiedHint: "⚠️ Los elementos amarillos «sin verificar» no se pudieron leer con seguridad. Compárelos con el horario original y desmarque los que sean incorrectos.",
                 registerBtn: "Añadir los eventos marcados al calendario",
                 registering: "Añadiendo al calendario...",
                 registeredMsg: " eventos añadidos 🚀",
@@ -1572,7 +1572,7 @@
                 const cb = document.createElement('input');
                 cb.type = 'checkbox';
                 cb.dataset.idx = String(i);
-                cb.checked = ev.confidence === 'high'; // 未検証はデフォルトOFF＝要確認
+                cb.checked = true; // 全項目デフォルトON（不要なものを外す運用。未検証はバッジで注意喚起）
 
                 const dateSpan = document.createElement('span');
                 dateSpan.className = 'grid-event-date';
