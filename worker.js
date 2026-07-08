@@ -1019,6 +1019,8 @@ try {
     Text: ${ocrText}`;
   }
 
+  // thinking OFFで終日予定（時刻情報なし）の抽出が失敗する劣化を実測確認したため
+  // thinking ON（既定）に据え置き。2026-07-08、triageと同様の理由で見送り
   const aiRes = await generativeModel.generateContent(prompt);
   const rawText = aiRes.response.candidates[0].content.parts[0].text;
   const cleanJson = rawText.replace(/```json|```/g, "").trim();
@@ -1337,10 +1339,11 @@ async function prepareGridPart(buffer, mimeType) {
 
 // thinking: Gemini 2.5 Flash はVertex AI既定で動的thinkingがON（可視出力の
 // 数倍のthinkingトークンが「Thinking Text Output」として別課金される）。
-// 判定タスク（triage: 書類分類・列検出・質問生成）は空間推論の要求が薄く
-// thinking なしでも実用上劣化しないため、triage 呼び出し（thinking=false）
-// のみ thinkingBudget:0 で無効化する。グリッド3ラン・汎用抽出は精度優先で
-// thinking=true（既定）のまま。SDK型定義に無いフィールドだがAPIには透過される
+// コスト削減のためtriage呼び出しをthinking OFF化して試したが、2026-07-08の
+// 実測でtriageの年月推測（date_confirm、過去年しか候補にしない誤り）と
+// /uploadの終日予定抽出（抽出失敗）の両方で再現性のある精度劣化を確認したため
+// 見送り、全呼び出しをthinking=true（既定）に統一した。第4引数の仕組み自体は
+// 将来の再検討用に残す（現状すべての呼び出しがtrue/省略）
 async function gridGenerateJson(filePart, prompt, temperature = 0, thinking = true) {
   const generationConfig = { responseMimeType: 'application/json', temperature: temperature };
   if (!thinking) generationConfig.thinkingConfig = { thinkingBudget: 0 };
@@ -1395,6 +1398,7 @@ app.post('/grid/columns', async (req, res) => {
 - タイトルや欄外から年・月が読み取れれば year / month に西暦の数値で設定。読み取れない場合は null。
 - 日付×クラス列のグリッド表でない場合（1枚1予定のチラシ、リスト形式など）は {"isGrid": false, "columns": [], "year": null, "month": null} を返す。`;
 
+    // thinking OFFで年月推測(date_confirm)の精度劣化を実測確認したため thinking ON に据え置き（2026-07-08）
     const parsed = await gridGenerateJson(filePart, prompt);
 
     if (!parsed.isGrid || !Array.isArray(parsed.columns) || parsed.columns.length === 0) {
@@ -2251,6 +2255,7 @@ app.post('/bulk/triage', async (req, res) => {
    - 質問文(prompt)と選択肢のラベルは${langName}で書く。ただし書類に印字された固有名（列名・クラス名・系列名等）は原文の表記のまま。
 6. カレンダー予定として意味を成さない情報（献立の材料・分量・栄養価、事務的な脚注、発行元情報）は columns にも questions にも含めない。`;
 
+    // thinking OFFで年月推測(date_confirm)の精度劣化を実測確認したため thinking ON に据え置き（2026-07-08）
     const parsed = await gridGenerateJson(filePart, prompt);
 
     const docTypes = (Array.isArray(parsed?.docTypes) ? parsed.docTypes : [])

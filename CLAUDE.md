@@ -34,6 +34,12 @@
 
 ### 3. インフラ・課金まわりの是正
 - Gemini モデル: `gemini-2.0-flash-001`（提供終了・404）→ `gemini-2.5-flash` に移行（worker.js:74）
+- **thinking mode**: Gemini 2.5 Flash はVertex AI既定で動的thinkingがON（請求SKU「Thinking Text Output」として可視出力より高単価で別課金。2026-07-08、実測で可視出力の約4倍のthinkingトークンを確認）。**コスト削減のためtriageと/uploadのthinking OFF化を試したが、両方で再現性のある精度劣化を実測し見送り、全呼び出しthinking=true（既定）で確定**:
+  - triage（旧/grid/columns・/bulk/triage）: OFF時、年が読み取れない場合の date_confirm 候補が**過去年のみ**になる誤り（thinking ON 3/3正常 vs OFF 2/3劣化、レナ7月号で再現確認）
+  - /upload: OFF時、終日予定（時刻情報なし。例:「11月1日は始業式です」）の抽出が**失敗**（ON 2/2成功 vs OFF 2/2失敗）
+  - グリッド3ラン多数決・汎用抽出は元々ON のまま変更なし
+  - `gridGenerateJson`の第4引数`thinking`（既定true）は将来の再検討用に温存。thinkingConfigはSDK（@google-cloud/vertexai 1.10.0）の型定義には無いがAPIには透過されることを確認済み
+  - コスト削減が必要になった場合は、全面OFFではなく機能単位でのA/Bテスト（複数回実行・過去年候補や終日予定など曖昧さを含むケースを狙い撃ちで検証）を必須とすること
 - **秘密情報ローテーション後の Cloud Run 環境変数の取り残しが3連発**: GOOGLE_CLIENT_SECRET（invalid_clientでログイン全断）、STRIPE_SECRET_KEY（Expired）、STRIPE_WEBHOOK_SECRET（署名400）。すべて更新済み。**「昨日まで動いていた認証系が突然失敗」を見たら、まず Cloud Run 環境変数と発行元の現在値の一致を疑うこと**。恒久対策の Secret Manager 移行は未実施
 - Webhook: Stripe エンドポイント（`we_1T1vh0…`）の購読に `invoice.paid` を追加（従来 checkout.session.completed のみで月次リセットが機能していなかった）。さらに新Stripe API（2025-03-31以降）では invoice の subId が `parent.subscription_details.metadata` に移動しており、worker.js の Webhook ハンドラに参照パスを追加済み。べき等性は `processedEvents/{event.id}`（db.js）で担保
 - **二重課金防止ガード**: プレミアムで30回到達時は checkout を作らず「次回リセット: ◯/◯」案内のみ返す（`premiumLimit: true`）。無料ユーザーの checkout 導線は従来どおり
