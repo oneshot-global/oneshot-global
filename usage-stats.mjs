@@ -10,6 +10,8 @@
 //   5. triage の docTypes 分布（BULK TRIAGE ログはこのスクリプト導入時から蓄積）
 //   6. /upload のタイムアウト率（latency>90s または status 499 の近似値）
 //   ＋ 自動除外（祝日名・日曜/祝日の素の休園）の平均件数
+//   ＋ triage の入力ファイル形式（image/pdf）比率（fileType フィールドは2026-07-11導入。
+//     ベクターPDF直接パース機能の投資判断用データ。それ以前のログには含まれない）
 import { execSync } from 'child_process';
 
 const days = Math.min(30, Math.max(1, parseInt(process.argv[2] || '30', 10) || 30));
@@ -30,7 +32,7 @@ const appLogs = gcloudJson(
 ).map(e => e.textPayload || '');
 
 const extract = { grid: 0, generic: 0, events: 0, low: 0, notices: 0 };
-const triage = { total: 0, docTypes: {}, likelyMode: { grid: 0, generic: 0 } };
+const triage = { total: 0, docTypes: {}, likelyMode: { grid: 0, generic: 0 }, fileType: { image: 0, pdf: 0, unknown: 0 } };
 let excludedTotal = 0, excludedLines = 0;
 
 for (const line of appLogs) {
@@ -40,11 +42,12 @@ for (const line of appLogs) {
     extract.events += Number(m[2]);
     extract.low += Number(m[3]);
     extract.notices += Number(m[4]);
-  } else if ((m = line.match(/BULK TRIAGE: docTypes=(\S+) questions=\S+ likelyMode=(grid|generic)/))) {
+  } else if ((m = line.match(/BULK TRIAGE: docTypes=(\S+) questions=\S+ likelyMode=(grid|generic)(?: fileType=(image|pdf))?/))) {
     triage.total++;
     const top = m[1].split(',')[0];
     triage.docTypes[top] = (triage.docTypes[top] || 0) + 1;
     triage.likelyMode[m[2]]++;
+    triage.fileType[m[3] || 'unknown']++;
   } else if ((m = line.match(/EXTRACT FILTER: auto-excluded (\d+)/))) {
     excludedTotal += Number(m[1]);
     excludedLines++;
@@ -80,6 +83,9 @@ const rows = [
     triage.total === 0 ? 'データなし（ログ導入後に蓄積）'
       : Object.entries(triage.docTypes).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(' / ')
       + `（計${triage.total}回, likelyMode grid ${triage.likelyMode.grid}/generic ${triage.likelyMode.generic}）`],
+  ['＋ 入力ファイル形式（PDF比率）',
+    (triage.fileType.image + triage.fileType.pdf) === 0 ? 'データなし（fileType記録は2026-07-11導入、蓄積待ち）'
+      : `pdf ${pct(triage.fileType.pdf, triage.fileType.image + triage.fileType.pdf)}（pdf ${triage.fileType.pdf} / image ${triage.fileType.image}${triage.fileType.unknown > 0 ? ` / 集計対象外(旧ログ) ${triage.fileType.unknown}` : ''}）`],
   ['── 通常モード ──', ''],
   ['6. /upload タイムアウト率(近似)', `${pct(uploadTimeouts.length, uploads.length)}（>90s or 499: ${uploadTimeouts.length} / ${uploads.length}件 ※401除外）`]
 ];
