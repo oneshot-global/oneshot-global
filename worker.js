@@ -1706,10 +1706,16 @@ C) notices の生成条件（厳守）:
     // 揺らぎを silent な誤登録ではなく確認対象として顕在化させる。
     // 3つの呼び出しに温度差とプロンプトの微差を持たせ、判定の独立性を確保する
     // （完全同一リクエストだと同じ解釈に収束し、コンセンサスの意味がなくなるため）
+    // 1ランのAPI呼び出し失敗・JSON出力途中切れ(SyntaxError)等は個別にcatchし、
+    // 残りのランだけで多数決を継続する（Promise.allのfail-fastで3ラン全滅扱いに
+    // なり500エラーになっていた問題への対応。2026-07-14）
     const runs = await Promise.all([
-      gridGenerateJson(filePart, prompt, 0),
-      gridGenerateJson(filePart, prompt + '\n【追記】行と列の対応の検算は、日付欄を1日ずつ指差し確認するつもりで特に念入りに行うこと。', 0.3),
+      gridGenerateJson(filePart, prompt, 0)
+        .catch(e => { console.warn('BULK EXTRACT: grid run 1 (temp=0) failed:', e.message); return null; }),
+      gridGenerateJson(filePart, prompt + '\n【追記】行と列の対応の検算は、日付欄を1日ずつ指差し確認するつもりで特に念入りに行うこと。', 0.3)
+        .catch(e => { console.warn('BULK EXTRACT: grid run 2 (temp=0.3) failed:', e.message); return null; }),
       gridGenerateJson(filePart, prompt + '\n【追記】出力前に、各セルの項目数と出力イベント数、および各イベントの日付の対応をもう一度点検すること。', 0.6)
+        .catch(e => { console.warn('BULK EXTRACT: grid run 3 (temp=0.6) failed:', e.message); return null; })
     ]);
     const validRuns = runs.filter(r => r && r.isGrid);
 
